@@ -16,5 +16,7 @@ migrateup:
 migratedown:
 	migrate -path db/migration -database "postgresql://$(DB_USER):$(DB_PWORD)@localhost:5432/whale_wake_users?sslmode=disable" -verbose down
 
+sqlc:
+	sqlc generate
 
-.PHONY: postgres createdb dropdb migrateup migratedown
+.PHONY: postgres createdb dropdb migrateup migratedown sqlc
