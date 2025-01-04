@@ -8,7 +8,7 @@ package db
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 const createUserRole = `-- name: CreateUserRole :one
@@ -18,12 +18,12 @@ RETURNING id, user_id, role_id, created_at, updated_at, verified_at
 `
 
 type CreateUserRoleParams struct {
-	UserID pgtype.UUID `json:"user_id"`
-	RoleID int32       `json:"role_id"`
+	UserID uuid.UUID `json:"user_id"`
+	RoleID int32     `json:"role_id"`
 }
 
 func (q *Queries) CreateUserRole(ctx context.Context, arg CreateUserRoleParams) (UserRole, error) {
-	row := q.db.QueryRow(ctx, createUserRole, arg.UserID, arg.RoleID)
+	row := q.db.QueryRowContext(ctx, createUserRole, arg.UserID, arg.RoleID)
 	var i UserRole
 	err := row.Scan(
 		&i.ID,
@@ -43,8 +43,8 @@ WHERE id = $1
 RETURNING id, user_id, role_id, created_at, updated_at, verified_at
 `
 
-func (q *Queries) DeleteUserRole(ctx context.Context, id pgtype.UUID) (UserRole, error) {
-	row := q.db.QueryRow(ctx, deleteUserRole, id)
+func (q *Queries) DeleteUserRole(ctx context.Context, id uuid.UUID) (UserRole, error) {
+	row := q.db.QueryRowContext(ctx, deleteUserRole, id)
 	var i UserRole
 	err := row.Scan(
 		&i.ID,
@@ -64,8 +64,8 @@ WHERE id = $1
 LIMIT 1
 `
 
-func (q *Queries) GetUserRole(ctx context.Context, id pgtype.UUID) (UserRole, error) {
-	row := q.db.QueryRow(ctx, getUserRole, id)
+func (q *Queries) GetUserRole(ctx context.Context, id uuid.UUID) (UserRole, error) {
+	row := q.db.QueryRowContext(ctx, getUserRole, id)
 	var i UserRole
 	err := row.Scan(
 		&i.ID,
@@ -91,7 +91,7 @@ type ListUserRolesParams struct {
 }
 
 func (q *Queries) ListUserRoles(ctx context.Context, arg ListUserRolesParams) ([]UserRole, error) {
-	rows, err := q.db.Query(ctx, listUserRoles, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listUserRoles, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -111,6 +111,9 @@ func (q *Queries) ListUserRoles(ctx context.Context, arg ListUserRolesParams) ([
 		}
 		items = append(items, i)
 	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -126,12 +129,12 @@ RETURNING id, user_id, role_id, created_at, updated_at, verified_at
 `
 
 type UpdateUserRoleParams struct {
-	ID     pgtype.UUID `json:"id"`
-	RoleID int32       `json:"role_id"`
+	ID     uuid.UUID `json:"id"`
+	RoleID int32     `json:"role_id"`
 }
 
 func (q *Queries) UpdateUserRole(ctx context.Context, arg UpdateUserRoleParams) (UserRole, error) {
-	row := q.db.QueryRow(ctx, updateUserRole, arg.ID, arg.RoleID)
+	row := q.db.QueryRowContext(ctx, updateUserRole, arg.ID, arg.RoleID)
 	var i UserRole
 	err := row.Scan(
 		&i.ID,

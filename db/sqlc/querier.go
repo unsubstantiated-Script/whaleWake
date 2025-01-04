@@ -7,19 +7,19 @@ package db
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	CreateUserProfile(ctx context.Context, arg CreateUserProfileParams) (UserProfile, error)
 	CreateUserRole(ctx context.Context, arg CreateUserRoleParams) (UserRole, error)
-	DeleteUser(ctx context.Context, id pgtype.UUID) (User, error)
-	DeleteUserProfile(ctx context.Context, id pgtype.UUID) (UserProfile, error)
-	DeleteUserRole(ctx context.Context, id pgtype.UUID) (UserRole, error)
-	GetUser(ctx context.Context, id pgtype.UUID) (User, error)
-	GetUserProfile(ctx context.Context, id pgtype.UUID) (UserProfile, error)
-	GetUserRole(ctx context.Context, id pgtype.UUID) (UserRole, error)
+	DeleteUser(ctx context.Context, id uuid.UUID) (User, error)
+	DeleteUserProfile(ctx context.Context, id uuid.UUID) (UserProfile, error)
+	DeleteUserRole(ctx context.Context, id uuid.UUID) (UserRole, error)
+	GetUser(ctx context.Context, id uuid.UUID) (User, error)
+	GetUserProfile(ctx context.Context, id uuid.UUID) (UserProfile, error)
+	GetUserRole(ctx context.Context, id uuid.UUID) (UserRole, error)
 	ListUserProfiles(ctx context.Context, arg ListUserProfilesParams) ([]UserProfile, error)
 	ListUserRoles(ctx context.Context, arg ListUserRolesParams) ([]UserRole, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error)
