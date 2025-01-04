@@ -1,5 +1,6 @@
+CREATE EXTENSION pgcrypto;
 CREATE TABLE "users" (
-                         "id" uuid PRIMARY KEY,
+                         "id" uuid PRIMARY KEY DEFAULT (gen_random_uuid()),
                          "user_name" varchar NOT NULL,
                          "email" varchar NOT NULL,
                          "password" varchar NOT NULL,
@@ -9,7 +10,7 @@ CREATE TABLE "users" (
 );
 
 CREATE TABLE "user_role" (
-                             "id" uuid PRIMARY KEY,
+                             "id" uuid PRIMARY KEY DEFAULT (gen_random_uuid()),
                              "user_id" uuid NOT NULL,
                              "role_id" int NOT NULL,
                              "created_at" timestamptz NOT NULL DEFAULT (now()),
@@ -18,7 +19,7 @@ CREATE TABLE "user_role" (
 );
 
 CREATE TABLE "user_profile" (
-                                "id" uuid PRIMARY KEY,
+                                "id" uuid PRIMARY KEY DEFAULT (gen_random_uuid()),
                                 "user_id" uuid NOT NULL,
                                 "first_name" varchar,
                                 "last_name" varchar,
