@@ -4,13 +4,14 @@ import (
 	"context"
 	"github.com/stretchr/testify/require"
 	"testing"
+	"whaleWake/util"
 )
 
 func TestCreateUser(t *testing.T) {
 	arg := CreateUserParams{
-		UserName: "Bilbo",
-		Email:    "bilbo@test.com",
-		Password: "kakak",
+		UserName: util.RandomUserName(),
+		Email:    util.RandomEmail(),
+		Password: util.RandomPassword(),
 	}
 
 	user, err := testQueries.CreateUser(context.Background(), arg)
