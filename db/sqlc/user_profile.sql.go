@@ -7,8 +7,9 @@ package db
 
 import (
 	"context"
+	"database/sql"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 const createUserProfile = `-- name: CreateUserProfile :one
@@ -25,19 +26,19 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, user_id, first_name, l
 `
 
 type CreateUserProfileParams struct {
-	UserID        pgtype.UUID `json:"user_id"`
-	FirstName     pgtype.Text `json:"first_name"`
-	LastName      pgtype.Text `json:"last_name"`
-	BusinessName  pgtype.Text `json:"business_name"`
-	StreetAddress pgtype.Text `json:"street_address"`
-	City          pgtype.Text `json:"city"`
-	State         pgtype.Text `json:"state"`
-	Zip           pgtype.Text `json:"zip"`
-	CountryCode   pgtype.Int4 `json:"country_code"`
+	UserID        uuid.UUID      `json:"user_id"`
+	FirstName     sql.NullString `json:"first_name"`
+	LastName      sql.NullString `json:"last_name"`
+	BusinessName  sql.NullString `json:"business_name"`
+	StreetAddress sql.NullString `json:"street_address"`
+	City          sql.NullString `json:"city"`
+	State         sql.NullString `json:"state"`
+	Zip           sql.NullString `json:"zip"`
+	CountryCode   sql.NullInt32  `json:"country_code"`
 }
 
 func (q *Queries) CreateUserProfile(ctx context.Context, arg CreateUserProfileParams) (UserProfile, error) {
-	row := q.db.QueryRow(ctx, createUserProfile,
+	row := q.db.QueryRowContext(ctx, createUserProfile,
 		arg.UserID,
 		arg.FirstName,
 		arg.LastName,
@@ -73,8 +74,8 @@ FROM user_profile
 WHERE id = $1 RETURNING id, user_id, first_name, last_name, business_name, street_address, city, state, zip, country_code, created_at, updated_at, verified_at
 `
 
-func (q *Queries) DeleteUserProfile(ctx context.Context, id pgtype.UUID) (UserProfile, error) {
-	row := q.db.QueryRow(ctx, deleteUserProfile, id)
+func (q *Queries) DeleteUserProfile(ctx context.Context, id uuid.UUID) (UserProfile, error) {
+	row := q.db.QueryRowContext(ctx, deleteUserProfile, id)
 	var i UserProfile
 	err := row.Scan(
 		&i.ID,
@@ -100,8 +101,8 @@ FROM user_profile
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetUserProfile(ctx context.Context, id pgtype.UUID) (UserProfile, error) {
-	row := q.db.QueryRow(ctx, getUserProfile, id)
+func (q *Queries) GetUserProfile(ctx context.Context, id uuid.UUID) (UserProfile, error) {
+	row := q.db.QueryRowContext(ctx, getUserProfile, id)
 	var i UserProfile
 	err := row.Scan(
 		&i.ID,
@@ -134,7 +135,7 @@ type ListUserProfilesParams struct {
 }
 
 func (q *Queries) ListUserProfiles(ctx context.Context, arg ListUserProfilesParams) ([]UserProfile, error) {
-	rows, err := q.db.Query(ctx, listUserProfiles, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listUserProfiles, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -161,6 +162,9 @@ func (q *Queries) ListUserProfiles(ctx context.Context, arg ListUserProfilesPara
 		}
 		items = append(items, i)
 	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -182,19 +186,19 @@ WHERE id = $1 RETURNING id, user_id, first_name, last_name, business_name, stree
 `
 
 type UpdateUserProfileParams struct {
-	ID            pgtype.UUID `json:"id"`
-	FirstName     pgtype.Text `json:"first_name"`
-	LastName      pgtype.Text `json:"last_name"`
-	BusinessName  pgtype.Text `json:"business_name"`
-	StreetAddress pgtype.Text `json:"street_address"`
-	City          pgtype.Text `json:"city"`
-	State         pgtype.Text `json:"state"`
-	Zip           pgtype.Text `json:"zip"`
-	CountryCode   pgtype.Int4 `json:"country_code"`
+	ID            uuid.UUID      `json:"id"`
+	FirstName     sql.NullString `json:"first_name"`
+	LastName      sql.NullString `json:"last_name"`
+	BusinessName  sql.NullString `json:"business_name"`
+	StreetAddress sql.NullString `json:"street_address"`
+	City          sql.NullString `json:"city"`
+	State         sql.NullString `json:"state"`
+	Zip           sql.NullString `json:"zip"`
+	CountryCode   sql.NullInt32  `json:"country_code"`
 }
 
 func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfileParams) (UserProfile, error) {
-	row := q.db.QueryRow(ctx, updateUserProfile,
+	row := q.db.QueryRowContext(ctx, updateUserProfile,
 		arg.ID,
 		arg.FirstName,
 		arg.LastName,

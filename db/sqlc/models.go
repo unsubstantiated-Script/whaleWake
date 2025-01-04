@@ -5,40 +5,43 @@
 package db
 
 import (
-	"github.com/jackc/pgx/v5/pgtype"
+	"database/sql"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type User struct {
-	ID         pgtype.UUID        `json:"id"`
-	UserName   string             `json:"user_name"`
-	Email      string             `json:"email"`
-	Password   string             `json:"password"`
-	CreatedAt  pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
-	VerifiedAt pgtype.Timestamptz `json:"verified_at"`
+	ID         uuid.UUID    `json:"id"`
+	UserName   string       `json:"user_name"`
+	Email      string       `json:"email"`
+	Password   string       `json:"password"`
+	CreatedAt  time.Time    `json:"created_at"`
+	UpdatedAt  time.Time    `json:"updated_at"`
+	VerifiedAt sql.NullTime `json:"verified_at"`
 }
 
 type UserProfile struct {
-	ID            pgtype.UUID        `json:"id"`
-	UserID        pgtype.UUID        `json:"user_id"`
-	FirstName     pgtype.Text        `json:"first_name"`
-	LastName      pgtype.Text        `json:"last_name"`
-	BusinessName  pgtype.Text        `json:"business_name"`
-	StreetAddress pgtype.Text        `json:"street_address"`
-	City          pgtype.Text        `json:"city"`
-	State         pgtype.Text        `json:"state"`
-	Zip           pgtype.Text        `json:"zip"`
-	CountryCode   pgtype.Int4        `json:"country_code"`
-	CreatedAt     pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
-	VerifiedAt    pgtype.Timestamptz `json:"verified_at"`
+	ID            uuid.UUID      `json:"id"`
+	UserID        uuid.UUID      `json:"user_id"`
+	FirstName     sql.NullString `json:"first_name"`
+	LastName      sql.NullString `json:"last_name"`
+	BusinessName  sql.NullString `json:"business_name"`
+	StreetAddress sql.NullString `json:"street_address"`
+	City          sql.NullString `json:"city"`
+	State         sql.NullString `json:"state"`
+	Zip           sql.NullString `json:"zip"`
+	CountryCode   sql.NullInt32  `json:"country_code"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+	VerifiedAt    sql.NullTime   `json:"verified_at"`
 }
 
 type UserRole struct {
-	ID         pgtype.UUID        `json:"id"`
-	UserID     pgtype.UUID        `json:"user_id"`
-	RoleID     int32              `json:"role_id"`
-	CreatedAt  pgtype.Timestamptz `json:"created_at"`
-	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
-	VerifiedAt pgtype.Timestamptz `json:"verified_at"`
+	ID         uuid.UUID    `json:"id"`
+	UserID     uuid.UUID    `json:"user_id"`
+	RoleID     int32        `json:"role_id"`
+	CreatedAt  time.Time    `json:"created_at"`
+	UpdatedAt  time.Time    `json:"updated_at"`
+	VerifiedAt sql.NullTime `json:"verified_at"`
 }
