@@ -18,7 +18,7 @@ LIMIT $1 OFFSET $2;
 -- name: UpdateUserRole :one
 UPDATE user_role
 SET role_id    = $2,
-    updated_at = statment_timestamp()
+    updated_at = STATEMENT_TIMESTAMP()
 WHERE id = $1
 RETURNING *;
 

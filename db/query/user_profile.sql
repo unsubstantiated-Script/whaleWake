@@ -31,7 +31,7 @@ SET first_name = $2,
     state = $7,
     zip = $8,
     country_code = $9,
-    updated_at = statment_timestamp()
+    updated_at = STATEMENT_TIMESTAMP()
 WHERE id = $1 RETURNING *;
 
 -- name: DeleteUserProfile :one

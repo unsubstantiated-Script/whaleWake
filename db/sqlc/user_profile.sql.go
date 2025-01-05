@@ -181,7 +181,7 @@ SET first_name = $2,
     state = $7,
     zip = $8,
     country_code = $9,
-    updated_at = statment_timestamp()
+    updated_at = STATEMENT_TIMESTAMP()
 WHERE id = $1 RETURNING id, user_id, first_name, last_name, business_name, street_address, city, state, zip, country_code, created_at, updated_at, verified_at
 `
 

@@ -123,7 +123,7 @@ func (q *Queries) ListUserRoles(ctx context.Context, arg ListUserRolesParams) ([
 const updateUserRole = `-- name: UpdateUserRole :one
 UPDATE user_role
 SET role_id    = $2,
-    updated_at = statment_timestamp()
+    updated_at = STATEMENT_TIMESTAMP()
 WHERE id = $1
 RETURNING id, user_id, role_id, created_at, updated_at, verified_at
 `
