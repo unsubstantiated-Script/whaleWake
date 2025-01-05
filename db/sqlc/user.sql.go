@@ -127,7 +127,7 @@ UPDATE users
 SET user_name  = $2,
     email      = $3,
     password   = $4,
-    updated_at = statment_timestamp()
+    updated_at = STATEMENT_TIMESTAMP()
 WHERE id = $1 RETURNING id, user_name, email, password, created_at, updated_at, verified_at
 `
 
