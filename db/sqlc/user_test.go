@@ -27,12 +27,14 @@ func createRandomUser(t *testing.T) User {
 	require.NotZero(t, user.ID)
 	require.NotZero(t, user.CreatedAt)
 	require.NotZero(t, user.UpdatedAt)
+	require.NotZero(t, user.VerifiedAt)
 
 	return user
 }
 
 func TestCreateUser(t *testing.T) {
 	user := createRandomUser(t)
+
 	t.Cleanup(func() {
 		_, err := testQueries.DeleteUser(context.Background(), user.ID)
 		if err != nil {
@@ -61,6 +63,8 @@ func TestGetUser(t *testing.T) {
 	require.Equal(t, user1.Email, user2.Email)
 	require.Equal(t, user1.Password, user2.Password)
 	require.WithinDuration(t, user1.CreatedAt, user2.CreatedAt, time.Second)
+	require.Equal(t, user1.UpdatedAt, user2.UpdatedAt)
+	require.Equal(t, user1.VerifiedAt, user2.VerifiedAt)
 }
 
 func TestUpdateUser(t *testing.T) {
@@ -92,6 +96,8 @@ func TestUpdateUser(t *testing.T) {
 	require.Equal(t, arg.Email, user2.Email)
 	require.Equal(t, user1.Password, user2.Password)
 	require.WithinDuration(t, user1.CreatedAt, user2.CreatedAt, time.Second)
+	require.NotEqual(t, user1.UpdatedAt, user2.UpdatedAt)
+	require.Equal(t, user1.VerifiedAt, user2.VerifiedAt)
 
 }
 
