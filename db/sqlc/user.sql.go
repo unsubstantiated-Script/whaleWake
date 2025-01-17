@@ -8,7 +8,7 @@ package db
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -23,7 +23,7 @@ type CreateUserParams struct {
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.UserName, arg.Email, arg.Password)
+	row := q.db.QueryRowContext(ctx, createUser, arg.UserName, arg.Email, arg.Password)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -43,8 +43,8 @@ FROM users
 WHERE id = $1 RETURNING id, user_name, email, password, created_at, updated_at, verified_at
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, id pgtype.UUID) (User, error) {
-	row := q.db.QueryRow(ctx, deleteUser, id)
+func (q *Queries) DeleteUser(ctx context.Context, id uuid.UUID) (User, error) {
+	row := q.db.QueryRowContext(ctx, deleteUser, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -64,8 +64,8 @@ FROM users
 WHERE id = $1 LIMIT 1
 `
 
-func (q *Queries) GetUser(ctx context.Context, id pgtype.UUID) (User, error) {
-	row := q.db.QueryRow(ctx, getUser, id)
+func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUser, id)
 	var i User
 	err := row.Scan(
 		&i.ID,
@@ -92,7 +92,7 @@ type ListUsersParams struct {
 }
 
 func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, error) {
-	rows, err := q.db.Query(ctx, listUsers, arg.Limit, arg.Offset)
+	rows, err := q.db.QueryContext(ctx, listUsers, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -113,6 +113,9 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]User, e
 		}
 		items = append(items, i)
 	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
@@ -124,19 +127,19 @@ UPDATE users
 SET user_name  = $2,
     email      = $3,
     password   = $4,
-    updated_at = statment_timestamp()
+    updated_at = STATEMENT_TIMESTAMP()
 WHERE id = $1 RETURNING id, user_name, email, password, created_at, updated_at, verified_at
 `
 
 type UpdateUserParams struct {
-	ID       pgtype.UUID `json:"id"`
-	UserName string      `json:"user_name"`
-	Email    string      `json:"email"`
-	Password string      `json:"password"`
+	ID       uuid.UUID `json:"id"`
+	UserName string    `json:"user_name"`
+	Email    string    `json:"email"`
+	Password string    `json:"password"`
 }
 
 func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
-	row := q.db.QueryRow(ctx, updateUser,
+	row := q.db.QueryRowContext(ctx, updateUser,
 		arg.ID,
 		arg.UserName,
 		arg.Email,
