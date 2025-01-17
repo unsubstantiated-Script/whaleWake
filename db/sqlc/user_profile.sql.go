@@ -7,7 +7,6 @@ package db
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/google/uuid"
 )
@@ -26,15 +25,15 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id, user_id, first_name, l
 `
 
 type CreateUserProfileParams struct {
-	UserID        uuid.UUID      `json:"user_id"`
-	FirstName     sql.NullString `json:"first_name"`
-	LastName      sql.NullString `json:"last_name"`
-	BusinessName  sql.NullString `json:"business_name"`
-	StreetAddress sql.NullString `json:"street_address"`
-	City          sql.NullString `json:"city"`
-	State         sql.NullString `json:"state"`
-	Zip           sql.NullString `json:"zip"`
-	CountryCode   sql.NullInt32  `json:"country_code"`
+	UserID        uuid.UUID `json:"user_id"`
+	FirstName     string    `json:"first_name"`
+	LastName      string    `json:"last_name"`
+	BusinessName  string    `json:"business_name"`
+	StreetAddress string    `json:"street_address"`
+	City          string    `json:"city"`
+	State         string    `json:"state"`
+	Zip           string    `json:"zip"`
+	CountryCode   string    `json:"country_code"`
 }
 
 func (q *Queries) CreateUserProfile(ctx context.Context, arg CreateUserProfileParams) (UserProfile, error) {
@@ -186,15 +185,15 @@ WHERE id = $1 RETURNING id, user_id, first_name, last_name, business_name, stree
 `
 
 type UpdateUserProfileParams struct {
-	ID            uuid.UUID      `json:"id"`
-	FirstName     sql.NullString `json:"first_name"`
-	LastName      sql.NullString `json:"last_name"`
-	BusinessName  sql.NullString `json:"business_name"`
-	StreetAddress sql.NullString `json:"street_address"`
-	City          sql.NullString `json:"city"`
-	State         sql.NullString `json:"state"`
-	Zip           sql.NullString `json:"zip"`
-	CountryCode   sql.NullInt32  `json:"country_code"`
+	ID            uuid.UUID `json:"id"`
+	FirstName     string    `json:"first_name"`
+	LastName      string    `json:"last_name"`
+	BusinessName  string    `json:"business_name"`
+	StreetAddress string    `json:"street_address"`
+	City          string    `json:"city"`
+	State         string    `json:"state"`
+	Zip           string    `json:"zip"`
+	CountryCode   string    `json:"country_code"`
 }
 
 func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfileParams) (UserProfile, error) {

@@ -1,6 +1,10 @@
 package util
 
-import "math/rand"
+import (
+	"math/rand"
+	"strconv"
+	"strings"
+)
 
 const alphabet = "abcdefghijklmnopqrstuvwxyz"
 
@@ -21,6 +25,22 @@ func RandomString(n int) string {
 // RandomUserName  returns a random owner name
 func RandomUserName() string {
 	return RandomString(6)
+}
+
+// RandomBusinessName returns a random business name
+func RandomBusinessName() string {
+	return RandomString(6) + " " + RandomString(6)
+}
+
+// RandomStreetAddress returns a random street address
+func RandomStreetAddress() string {
+	streetNumber := strconv.FormatInt(RandomInt(1, 999), 10)
+	return streetNumber + " " + RandomString(6) + " " + RandomString(6)
+}
+
+// RandomCountryCodeOrState returns a random country code or state
+func RandomCountryCodeOrState() string {
+	return strings.ToUpper(RandomString(2))
 }
 
 // RandomPassword returns a random password

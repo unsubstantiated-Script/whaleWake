@@ -113,7 +113,8 @@ func TestListUserRoles(t *testing.T) {
 	var roleSlice []UserRole
 
 	for i := 0; i < 10; i++ {
-		roleSlice = append(roleSlice, createRandomUserRole(t, user))
+		role := createRandomUserRole(t, user)
+		roleSlice = append(roleSlice, role)
 	}
 
 	arg := ListUserRolesParams{
