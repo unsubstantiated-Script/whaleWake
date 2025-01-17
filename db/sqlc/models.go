@@ -22,19 +22,19 @@ type User struct {
 }
 
 type UserProfile struct {
-	ID            uuid.UUID      `json:"id"`
-	UserID        uuid.UUID      `json:"user_id"`
-	FirstName     sql.NullString `json:"first_name"`
-	LastName      sql.NullString `json:"last_name"`
-	BusinessName  sql.NullString `json:"business_name"`
-	StreetAddress sql.NullString `json:"street_address"`
-	City          sql.NullString `json:"city"`
-	State         sql.NullString `json:"state"`
-	Zip           sql.NullString `json:"zip"`
-	CountryCode   sql.NullInt32  `json:"country_code"`
-	CreatedAt     time.Time      `json:"created_at"`
-	UpdatedAt     time.Time      `json:"updated_at"`
-	VerifiedAt    sql.NullTime   `json:"verified_at"`
+	ID            uuid.UUID    `json:"id"`
+	UserID        uuid.UUID    `json:"user_id"`
+	FirstName     string       `json:"first_name"`
+	LastName      string       `json:"last_name"`
+	BusinessName  string       `json:"business_name"`
+	StreetAddress string       `json:"street_address"`
+	City          string       `json:"city"`
+	State         string       `json:"state"`
+	Zip           string       `json:"zip"`
+	CountryCode   string       `json:"country_code"`
+	CreatedAt     time.Time    `json:"created_at"`
+	UpdatedAt     time.Time    `json:"updated_at"`
+	VerifiedAt    sql.NullTime `json:"verified_at"`
 }
 
 type UserRole struct {
