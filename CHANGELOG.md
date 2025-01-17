@@ -1,6 +1,7 @@
 Next Release
 -
 
+
 v1.2.0
 * GoLang Migrate Setup
 * SQLC Setup and generation of first Query Files 
