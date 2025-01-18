@@ -66,6 +66,8 @@ func TestCreateUserWithProfileTx(t *testing.T) {
 
 	userProfileResult := result.UserProfile
 	require.NotEmpty(t, userProfileResult)
+	//While this does peel off of the transaction result, it's still viable for testing the ID in the UserProfile table
+	require.Equal(t, userResult.ID, userProfileResult.UserID)
 	require.Equal(t, userProfile.FirstName, userProfileResult.FirstName)
 	require.Equal(t, userProfile.LastName, userProfileResult.LastName)
 	require.Equal(t, userProfile.BusinessName, userProfileResult.BusinessName)
@@ -80,6 +82,8 @@ func TestCreateUserWithProfileTx(t *testing.T) {
 
 	userRoleResult := result.UserRole
 	require.NotEmpty(t, userRoleResult)
+	//While this does peel off of the transaction result, it's still viable for testing the ID in the UserRole table
+	require.Equal(t, userResult.ID, userRoleResult.UserID)
 	require.Equal(t, userRole.RoleID, userRoleResult.RoleID)
 
 	_, err = store.GetUserRole(context.Background(), userRoleResult.ID)
