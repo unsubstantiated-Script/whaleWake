@@ -41,7 +41,7 @@ func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
 	return tx.Commit()
 }
 
-// CreateUserTxResult is the result of transfer transaction.
+// UserTxResult CreateUserTxResult is the result of transfer transaction.
 type UserTxResult struct {
 	User        User        `json:"user"`
 	UserProfile UserProfile `json:"user_profile"`

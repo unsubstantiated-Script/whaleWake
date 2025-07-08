@@ -7,7 +7,7 @@ import (
 	"whaleWake/util"
 )
 
-func TestCreateUserWithProfileTx(t *testing.T) {
+func TestCreateUserWithProfileAndRoleTx(t *testing.T) {
 	store := NewStore(testDB)
 
 	user := User{
