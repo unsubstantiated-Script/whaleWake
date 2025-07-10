@@ -7,7 +7,6 @@ on:
     branches: [ "master" ]
 
 jobs:
-
   test:
     name: Test Whale Wake
     runs-on: ubuntu-latest
@@ -33,10 +32,10 @@ jobs:
         with:
           go-version: '1.22'
 
-     - name: Create test .env file
-       run: |
-         echo "DB_USER=testuser" >> .env
-         echo "DB_PWORD=testpassword" >> .env
+      - name: Create test .env file
+        run: |
+          echo "DB_USER=testuser" >> .env
+          echo "DB_PWORD=testpassword" >> .env
 
       - name: Run Migrations
         run: make testmigrateup
