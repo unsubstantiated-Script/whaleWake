@@ -11,6 +11,20 @@ jobs:
   test:
     name: Test Whale Wake
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: ${{ secrets.DB_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.DB_PWORD }}
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U ${{ secrets.DB_USER }}" 
+          --health-interval=10s 
+          --health-timeout=5s 
+          --health-retries=5
     steps:
       - uses: actions/checkout@v4
 
@@ -23,6 +37,21 @@ jobs:
         run: |
           echo "DB_USER=${{ secrets.DB_USER }}" >> .env
           echo "DB_PWORD=${{ secrets.DB_PWORD }}" >> .env
+          echo "DB_NAME=testdb" >> .env
+          echo "DB_HOST=localhost" >> .env
+          echo "DB_PORT=5432" >> .env
+
+      - name: Wait for Postgres
+        run: |
+          until pg_isready -h localhost -p 5432 -U ${{ secrets.DB_USER }}; do
+            sleep 1
+          done
 
       - name: Test
         run: make test
+        env:
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PWORD: ${{ secrets.DB_PWORD }}
+          DB_NAME: testdb
+          DB_HOST: localhost
+          DB_PORT: 5432
