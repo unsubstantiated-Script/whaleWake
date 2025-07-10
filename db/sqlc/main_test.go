@@ -11,10 +11,13 @@ import (
 )
 
 var testQueries *Queries
+var testDB *sql.DB
 
 // TestMain Entry point for all the tests that need to run.
 func TestMain(m *testing.M) {
-	err := godotenv.Load("../../.env")
+	var err error
+
+	err = godotenv.Load("../../.env")
 
 	if err != nil {
 		log.Fatalf("Error loading .env file")
@@ -26,13 +29,13 @@ func TestMain(m *testing.M) {
 	dbDriver := "postgres"
 	dbSource := fmt.Sprintf("postgresql://%s:%s@localhost:5432/whale_wake_users?sslmode=disable", dbUser, dbPassword)
 
-	conn, err := sql.Open(dbDriver, dbSource)
+	testDB, err = sql.Open(dbDriver, dbSource)
 
 	if err != nil {
 		log.Fatal("Unable to connect to the db:", err)
 	}
 
-	testQueries = New(conn)
+	testQueries = New(testDB)
 
 	os.Exit(m.Run())
 }

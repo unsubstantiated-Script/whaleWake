@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"strconv"
 	"testing"
@@ -10,9 +11,9 @@ import (
 	"whaleWake/util"
 )
 
-func createRandomUserProfile(t *testing.T, user User) UserProfile {
+func createRandomUserProfile(t *testing.T, userID uuid.UUID) UserProfile {
 	arg := CreateUserProfileParams{
-		UserID:        user.ID,
+		UserID:        userID,
 		FirstName:     util.RandomUserName(),
 		LastName:      util.RandomUserName(),
 		BusinessName:  util.RandomBusinessName(),
@@ -32,7 +33,7 @@ func createRandomUserProfile(t *testing.T, user User) UserProfile {
 
 func TestCreateUserProfile(t *testing.T) {
 	user := createRandomUser(t)
-	profile := createRandomUserProfile(t, user)
+	profile := createRandomUserProfile(t, user.ID)
 
 	t.Cleanup(func() {
 		_, err := testQueries.DeleteUserProfile(context.Background(), profile.ID)
@@ -44,7 +45,7 @@ func TestCreateUserProfile(t *testing.T) {
 
 func TestGetUserProfile(t *testing.T) {
 	user := createRandomUser(t)
-	profile1 := createRandomUserProfile(t, user)
+	profile1 := createRandomUserProfile(t, user.ID)
 	profile2, err := testQueries.GetUserProfile(context.Background(), profile1.ID)
 
 	// Cleanup should be run before the require statements because if the require statements fail, the cleanup will not be run
@@ -75,7 +76,7 @@ func TestGetUserProfile(t *testing.T) {
 
 func TestUpdateUserProfile(t *testing.T) {
 	user := createRandomUser(t)
-	profile1 := createRandomUserProfile(t, user)
+	profile1 := createRandomUserProfile(t, user.ID)
 
 	arg := UpdateUserProfileParams{
 		ID:            profile1.ID,
@@ -117,7 +118,7 @@ func TestUpdateUserProfile(t *testing.T) {
 
 func TestDeleteUserProfile(t *testing.T) {
 	user := createRandomUser(t)
-	profile1 := createRandomUserProfile(t, user)
+	profile1 := createRandomUserProfile(t, user.ID)
 
 	profile1, err := testQueries.DeleteUserProfile(context.Background(), profile1.ID)
 	require.NoError(t, err)
@@ -134,7 +135,7 @@ func TestListUserProfiles(t *testing.T) {
 	var profileSlice []UserProfile
 
 	for i := 0; i < 10; i++ {
-		profile := createRandomUserProfile(t, user)
+		profile := createRandomUserProfile(t, user.ID)
 		profileSlice = append(profileSlice, profile)
 	}
 

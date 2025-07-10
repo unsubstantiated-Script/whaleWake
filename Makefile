@@ -13,6 +13,9 @@ dropdb:
 migrateup:
 	migrate -path db/migration -database "postgresql://$(DB_USER):$(DB_PWORD)@localhost:5432/whale_wake_users?sslmode=disable" -verbose up
 
+testmigrateup:
+	migrate -path db/migration -database "postgresql://testuser:testpassword@localhost:5432/whale_wake_users?sslmode=disable" -verbose up
+
 migratedown:
 	migrate -path db/migration -database "postgresql://$(DB_USER):$(DB_PWORD)@localhost:5432/whale_wake_users?sslmode=disable" -verbose down
 
@@ -22,4 +25,4 @@ sqlc:
 test:
 	go test -v -cover ./...
 
-.PHONY: postgres createdb dropdb migrateup migratedown sqlc test
+.PHONY: postgres createdb dropdb migrateup testmigrateup migratedown sqlc test

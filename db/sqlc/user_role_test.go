@@ -3,21 +3,22 @@ package db
 import (
 	"context"
 	"database/sql"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
 	"whaleWake/util"
 )
 
-func createRandomUserRole(t *testing.T, user User) UserRole {
+func createRandomUserRole(t *testing.T, userID uuid.UUID) UserRole {
 	arg := CreateUserRoleParams{
-		UserID: user.ID,
+		UserID: userID,
 		RoleID: int32(util.RandomInt(1, 3)),
 	}
 
 	role, err := testQueries.CreateUserRole(context.Background(), arg)
 	require.NoError(t, err)
-	require.NotEmpty(t, user)
+	require.NotEmpty(t, userID)
 
 	require.Equal(t, arg.UserID, role.UserID)
 	require.Equal(t, arg.RoleID, role.RoleID)
@@ -32,7 +33,7 @@ func createRandomUserRole(t *testing.T, user User) UserRole {
 
 func TestCreateUserRole(t *testing.T) {
 	user := createRandomUser(t)
-	role := createRandomUserRole(t, user)
+	role := createRandomUserRole(t, user.ID)
 
 	t.Cleanup(func() {
 		_, err := testQueries.DeleteUserRole(context.Background(), role.ID)
@@ -44,7 +45,7 @@ func TestCreateUserRole(t *testing.T) {
 
 func TestGetUserRole(t *testing.T) {
 	user := createRandomUser(t)
-	role1 := createRandomUserRole(t, user)
+	role1 := createRandomUserRole(t, user.ID)
 	role2, err := testQueries.GetUserRole(context.Background(), role1.ID)
 
 	// Cleanup should be run before the require statements because if the require statements fail, the cleanup will not be run
@@ -68,7 +69,7 @@ func TestGetUserRole(t *testing.T) {
 
 func TestUpdateUserRole(t *testing.T) {
 	user := createRandomUser(t)
-	role1 := createRandomUserRole(t, user)
+	role1 := createRandomUserRole(t, user.ID)
 
 	arg := UpdateUserRoleParams{
 		ID:     role1.ID,
@@ -97,7 +98,7 @@ func TestUpdateUserRole(t *testing.T) {
 
 func TestDeleteUserRole(t *testing.T) {
 	user := createRandomUser(t)
-	role1 := createRandomUserRole(t, user)
+	role1 := createRandomUserRole(t, user.ID)
 
 	role1, err := testQueries.DeleteUserRole(context.Background(), role1.ID)
 	require.NoError(t, err)
@@ -113,7 +114,7 @@ func TestListUserRoles(t *testing.T) {
 	var roleSlice []UserRole
 
 	for i := 0; i < 10; i++ {
-		role := createRandomUserRole(t, user)
+		role := createRandomUserRole(t, user.ID)
 		roleSlice = append(roleSlice, role)
 	}
 
