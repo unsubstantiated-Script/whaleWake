@@ -19,5 +19,10 @@ jobs:
         with:
           go-version: '1.22'
 
+      - name: Create .env file
+        run: |
+          echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+          echo "DB_PWORD=${{ secrets.DB_PWORD }}" >> .env
+
       - name: Test
         run: make test
