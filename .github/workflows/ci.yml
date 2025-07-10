@@ -37,6 +37,12 @@ jobs:
           echo "DB_USER=testuser" >> .env
           echo "DB_PWORD=testpassword" >> .env
 
+      - name: Install golang-migrate CLI
+        run: |
+          curl -L https://github.com/golang-migrate/migrate/releases/download/v4.16.2/migrate.linux-amd64.tar.gz | tar xvz
+          sudo mv migrate /usr/local/bin/
+          which migrate
+
       - name: Run Migrations
         run: make testmigrateup
 
