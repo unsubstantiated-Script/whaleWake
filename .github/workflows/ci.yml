@@ -43,6 +43,14 @@ jobs:
           sudo mv migrate /usr/local/bin/
           which migrate
 
+        - name: Wait for Postgres
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 && exit 0
+            sleep 1
+          done
+          exit 1
+
       - name: Run Migrations
         run: make testmigrateup
 
