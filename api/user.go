@@ -69,3 +69,33 @@ func (server *Server) GetUser(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, user)
 }
+
+// `form` pulls off the URI query item.
+type listUsersRequest struct {
+	PageID   int32 `form:"page_id" binding:"required,min=1"`
+	PageSize int32 `form:"page_size" binding:"required,min=1"`
+}
+
+func (server *Server) ListUser(ctx *gin.Context) {
+
+	var req listUsersRequest
+
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	arg := db.ListUsersParams{
+		Limit:  req.PageSize,
+		Offset: (req.PageID - 1) * req.PageSize,
+	}
+
+	users, err := server.store.ListUsers(ctx, arg)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, users)
+}
