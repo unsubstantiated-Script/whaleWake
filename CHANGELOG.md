@@ -4,6 +4,7 @@ Next Release
 * Install Gin v1.6.3
 * Setup Create User Route
 * Setup Get User Route
+* Setup List User Route
 
 v1.3.0
 * Adding CI Testing
