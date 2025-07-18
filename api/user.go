@@ -57,6 +57,11 @@ func (server *Server) GetUser(ctx *gin.Context) {
 		return
 	}
 
+	if server.store == nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("store not initialized")))
+		return
+	}
+
 	user, err := server.store.GetUser(ctx, id)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -88,6 +93,11 @@ func (server *Server) ListUser(ctx *gin.Context) {
 	arg := db.ListUsersParams{
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
+	}
+
+	if server.store == nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("store not initialized")))
+		return
 	}
 
 	users, err := server.store.ListUsers(ctx, arg)
