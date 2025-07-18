@@ -6,6 +6,7 @@ Next Release
 * Setup Get User Route
 * Setup List User Route
 * Setup Delete User Route
+* Setup Update User Route
 
 v1.3.0
 * Adding CI Testing
