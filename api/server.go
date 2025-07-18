@@ -19,6 +19,7 @@ func NewServer(store *db.Store) *Server {
 	router.POST("/users", server.CreateUser)
 	router.GET("/users/:id", server.GetUser)
 	router.GET("/users", server.ListUser)
+	router.DELETE("/users/:id", server.DeleteUser)
 
 	//Add Routes to Router
 	server.router = router
