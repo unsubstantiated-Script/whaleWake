@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/google/uuid"
 )
 
 // Store provides all functions to execute db queries and transactions
@@ -82,3 +83,32 @@ func (store *Store) CreateUserWithProfileAndRoleTx(ctx context.Context, userPara
 
 	return result, err
 }
+
+func (store *Store) GetUserWithProfileAndRoleTX(ctx context.Context, userID uuid.UUID) (UserTxResult, error) {
+	var result UserTxResult
+	err := store.execTx(ctx, func(q *Queries) error {
+		var err error
+
+		result.User, err = q.GetUser(ctx, userID)
+		if err != nil {
+			return err
+		}
+
+		result.UserProfile, err = q.GetUserProfile(ctx, userID)
+		if err != nil {
+			return err
+		}
+
+		result.UserRole, err = q.GetUserRole(ctx, userID)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return result, err
+}
+
+//TODO: Make a DeleteUserProfileRoleTX -> and tests?
+//TODO: Make an UpdateUserProfileRoleTx -> and tests?
