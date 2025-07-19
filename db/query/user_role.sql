@@ -6,7 +6,7 @@ RETURNING *;
 -- name: GetUserRole :one
 SELECT *
 FROM user_role
-WHERE id = $1
+WHERE user_id = $1
 LIMIT 1;
 
 -- name: ListUserRoles :many
@@ -19,11 +19,11 @@ LIMIT $1 OFFSET $2;
 UPDATE user_role
 SET role_id    = $2,
     updated_at = STATEMENT_TIMESTAMP()
-WHERE id = $1
+WHERE user_id = $1
 RETURNING *;
 
 -- name: DeleteUserRole :one
 DELETE
 FROM user_role
-WHERE id = $1
+WHERE user_id = $1
 RETURNING *;

@@ -79,7 +79,7 @@ func TestUpdateUserProfile(t *testing.T) {
 	profile1 := createRandomUserProfile(t, user.ID)
 
 	arg := UpdateUserProfileParams{
-		ID:            profile1.ID,
+		UserID:        profile1.ID,
 		FirstName:     util.RandomUserName(),
 		LastName:      util.RandomUserName(),
 		BusinessName:  util.RandomBusinessName(),

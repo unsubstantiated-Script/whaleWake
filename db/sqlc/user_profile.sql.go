@@ -70,11 +70,11 @@ func (q *Queries) CreateUserProfile(ctx context.Context, arg CreateUserProfilePa
 const deleteUserProfile = `-- name: DeleteUserProfile :one
 DELETE
 FROM user_profile
-WHERE id = $1 RETURNING id, user_id, first_name, last_name, business_name, street_address, city, state, zip, country_code, created_at, updated_at, verified_at
+WHERE user_id = $1 RETURNING id, user_id, first_name, last_name, business_name, street_address, city, state, zip, country_code, created_at, updated_at, verified_at
 `
 
-func (q *Queries) DeleteUserProfile(ctx context.Context, id uuid.UUID) (UserProfile, error) {
-	row := q.db.QueryRowContext(ctx, deleteUserProfile, id)
+func (q *Queries) DeleteUserProfile(ctx context.Context, userID uuid.UUID) (UserProfile, error) {
+	row := q.db.QueryRowContext(ctx, deleteUserProfile, userID)
 	var i UserProfile
 	err := row.Scan(
 		&i.ID,
@@ -97,11 +97,11 @@ func (q *Queries) DeleteUserProfile(ctx context.Context, id uuid.UUID) (UserProf
 const getUserProfile = `-- name: GetUserProfile :one
 SELECT id, user_id, first_name, last_name, business_name, street_address, city, state, zip, country_code, created_at, updated_at, verified_at
 FROM user_profile
-WHERE id = $1 LIMIT 1
+WHERE user_id = $1 LIMIT 1
 `
 
-func (q *Queries) GetUserProfile(ctx context.Context, id uuid.UUID) (UserProfile, error) {
-	row := q.db.QueryRowContext(ctx, getUserProfile, id)
+func (q *Queries) GetUserProfile(ctx context.Context, userID uuid.UUID) (UserProfile, error) {
+	row := q.db.QueryRowContext(ctx, getUserProfile, userID)
 	var i UserProfile
 	err := row.Scan(
 		&i.ID,
@@ -181,11 +181,11 @@ SET first_name = $2,
     zip = $8,
     country_code = $9,
     updated_at = STATEMENT_TIMESTAMP()
-WHERE id = $1 RETURNING id, user_id, first_name, last_name, business_name, street_address, city, state, zip, country_code, created_at, updated_at, verified_at
+WHERE user_id = $1 RETURNING id, user_id, first_name, last_name, business_name, street_address, city, state, zip, country_code, created_at, updated_at, verified_at
 `
 
 type UpdateUserProfileParams struct {
-	ID            uuid.UUID `json:"id"`
+	UserID        uuid.UUID `json:"user_id"`
 	FirstName     string    `json:"first_name"`
 	LastName      string    `json:"last_name"`
 	BusinessName  string    `json:"business_name"`
@@ -198,7 +198,7 @@ type UpdateUserProfileParams struct {
 
 func (q *Queries) UpdateUserProfile(ctx context.Context, arg UpdateUserProfileParams) (UserProfile, error) {
 	row := q.db.QueryRowContext(ctx, updateUserProfile,
-		arg.ID,
+		arg.UserID,
 		arg.FirstName,
 		arg.LastName,
 		arg.BusinessName,
