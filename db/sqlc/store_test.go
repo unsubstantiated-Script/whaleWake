@@ -170,3 +170,64 @@ func TestGetUserWithProfileAndRoleTx(t *testing.T) {
 	})
 
 }
+
+func TestDeleteUserWithProfileAndRole(t *testing.T) {
+	store := NewStore(testDB)
+
+	user := User{
+		UserName: util.RandomUserName(),
+		Email:    util.RandomEmail(),
+		Password: util.RandomPassword(),
+	}
+
+	userProfile := UserProfile{
+		FirstName:     util.RandomUserName(),
+		LastName:      util.RandomUserName(),
+		BusinessName:  util.RandomBusinessName(),
+		StreetAddress: util.RandomStreetAddress(),
+		City:          util.RandomString(6),
+		State:         util.RandomCountryCodeOrState(),
+		Zip:           util.RandomString(5),
+		CountryCode:   util.RandomCountryCodeOrState(),
+	}
+
+	userRole := UserRole{
+		RoleID: int32(util.RandomInt(1, 3)),
+	}
+
+	result, err := store.CreateUserWithProfileAndRoleTx(context.Background(),
+		CreateUserParams{
+			UserName: user.UserName,
+			Email:    user.Email,
+			Password: user.Password},
+		CreateUserProfileParams{
+			FirstName:     userProfile.FirstName,
+			LastName:      userProfile.LastName,
+			BusinessName:  userProfile.BusinessName,
+			StreetAddress: userProfile.StreetAddress,
+			City:          userProfile.City,
+			State:         userProfile.State,
+			Zip:           userProfile.Zip,
+			CountryCode:   userProfile.CountryCode,
+		},
+		CreateUserRoleParams{
+			RoleID: userRole.RoleID,
+		})
+
+	// Quick check on the Create Mock here.
+	require.NoError(t, err)
+	require.NotEmpty(t, result)
+
+	_, err = store.DeleteUserWithProfileAndRoleTX(context.Background(), result.User.ID)
+	require.NoError(t, err)
+
+	_, err = store.GetUser(context.Background(), result.User.ID)
+	require.Error(t, err)
+
+	_, err = store.GetUserProfile(context.Background(), result.UserProfile.ID)
+	require.Error(t, err)
+
+	_, err = store.GetUserRole(context.Background(), result.UserRole.ID)
+	require.Error(t, err)
+
+}

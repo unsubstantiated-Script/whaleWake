@@ -110,5 +110,30 @@ func (store *Store) GetUserWithProfileAndRoleTX(ctx context.Context, userID uuid
 	return result, err
 }
 
-//TODO: Make a DeleteUserProfileRoleTX -> and tests?
+func (store *Store) DeleteUserWithProfileAndRoleTX(ctx context.Context, userID uuid.UUID) (UserTxResult, error) {
+	var result UserTxResult
+
+	err := store.execTx(ctx, func(q *Queries) error {
+		var err error
+
+		result.UserRole, err = q.DeleteUserRole(ctx, userID)
+		if err != nil {
+			return err
+		}
+
+		result.UserProfile, err = q.DeleteUserProfile(ctx, userID)
+		if err != nil {
+			return err
+		}
+
+		result.User, err = q.DeleteUser(ctx, userID)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
+	return result, err
+}
+
 //TODO: Make an UpdateUserProfileRoleTx -> and tests?
