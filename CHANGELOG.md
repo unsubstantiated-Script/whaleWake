@@ -7,6 +7,9 @@ Next Release
 * Setup List User Route
 * Setup Delete User Route
 * Setup Update User Route
+* Get User Transaction and Tests
+* Delete User Transaction and Tests
+* Update User Transaction and Tests
 
 v1.3.0
 * Adding CI Testing
