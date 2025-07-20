@@ -9,12 +9,20 @@ import (
 	db "whaleWake/db/sqlc"
 )
 
+// createUserRequest defines the payload for creating a new user.
+// Fields:
+// - UserName: required username.
+// - Email: required, must be a valid email.
+// - Password: required, 8-32 characters.
 type createUserRequest struct {
 	UserName string `json:"user_name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=8,max=32"`
 }
 
+// CreateUser handles POST /users to create a new user.
+// Validates input, checks for duplicates, and inserts into the database.
+// Returns 400 for bad input, 500 for server errors, 200 for success.
 func (server *Server) CreateUser(ctx *gin.Context) {
 	var req createUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -40,7 +48,6 @@ func (server *Server) CreateUser(ctx *gin.Context) {
 	}
 
 	user, err := server.store.CreateUser(ctx, arg)
-
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -49,6 +56,9 @@ func (server *Server) CreateUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, user)
 }
 
+// GetUser handles GET /users/:id to retrieve a user by UUID.
+// Validates UUID and fetches user from the database.
+// Returns 400 for bad UUID, 404 if not found, 500 for server errors, 200 for success.
 func (server *Server) GetUser(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := uuid.Parse(idStr)
@@ -75,14 +85,19 @@ func (server *Server) GetUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, user)
 }
 
-// `form` pulls off the URI query item.
+// listUsersRequest defines query parameters for paginated user listing.
+// Fields:
+// - PageID: required, >= 1.
+// - PageSize: required, >= 1.
 type listUsersRequest struct {
 	PageID   int32 `form:"page_id" binding:"required,min=1"`
 	PageSize int32 `form:"page_size" binding:"required,min=1"`
 }
 
+// ListUser handles GET /users to list users with pagination.
+// Validates query params and fetches users from the database.
+// Returns 400 for bad params, 500 for server errors, 200 for success.
 func (server *Server) ListUser(ctx *gin.Context) {
-
 	var req listUsersRequest
 
 	if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -101,7 +116,6 @@ func (server *Server) ListUser(ctx *gin.Context) {
 	}
 
 	users, err := server.store.ListUsers(ctx, arg)
-
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -110,6 +124,9 @@ func (server *Server) ListUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, users)
 }
 
+// DeleteUser handles DELETE /users/:id to delete a user by UUID.
+// Validates UUID and deletes user from the database.
+// Returns 400 for bad UUID, 500 for server errors, 200 for success.
 func (server *Server) DeleteUser(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := uuid.Parse(idStr)
@@ -130,6 +147,10 @@ func (server *Server) DeleteUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, user)
 }
 
+// updateUserRequest defines the payload for updating a user.
+// Fields:
+// - ID: required UUID of the user.
+// - UserName, Email, Password: optional new values.
 type updateUserRequest struct {
 	ID       uuid.UUID `json:"id" binding:"required"`
 	UserName string    `json:"user_name"`
@@ -137,6 +158,9 @@ type updateUserRequest struct {
 	Password string    `json:"password"`
 }
 
+// UpdateUser handles PUT /users to update user details.
+// Validates input and updates user in the database.
+// Returns 400 for bad input, 500 for server errors, 200 for success.
 func (server *Server) UpdateUser(ctx *gin.Context) {
 	var req updateUserRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -165,6 +189,9 @@ func (server *Server) UpdateUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, user)
 }
 
+// createUserTxRequest defines the payload for transactional user creation.
+// Includes user, profile, and role fields.
+// All fields are required except for role, which is set internally.
 type createUserTxRequest struct {
 	UserName      string `json:"user_name" binding:"required"`
 	Email         string `json:"email" binding:"required, email"`
@@ -179,6 +206,9 @@ type createUserTxRequest struct {
 	CountryCode   string `json:"country_code" binding:"required"`
 }
 
+// CreateUserTx handles POST /users/tx for transactional user creation.
+// Creates user, profile, and role in a single transaction.
+// Returns 400 for bad input, 500 for server errors, 200 for success.
 func (server *Server) CreateUserTx(ctx *gin.Context) {
 	var req createUserTxRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -219,7 +249,6 @@ func (server *Server) CreateUserTx(ctx *gin.Context) {
 	}
 
 	userWithProfileAndRole, err := server.store.CreateUserWithProfileAndRoleTx(ctx, userParams, profileParams, roleParams)
-
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -228,10 +257,16 @@ func (server *Server) CreateUserTx(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, userWithProfileAndRole)
 }
 
+// getUserTxRequest defines the payload for transactional user retrieval.
+// Field:
+// - ID: required UUID of the user.
 type getUserTxRequest struct {
 	ID uuid.UUID `json:"id" binding:"required"`
 }
 
+// GetUserTx handles GET /users/tx/:id for transactional user retrieval.
+// Fetches user with profile and role in a single transaction.
+// Returns 400 for bad UUID, 500 for server errors, 200 for success.
 func (server *Server) GetUserTx(ctx *gin.Context) {
 	idStr := ctx.Param("id")
 	id, err := uuid.Parse(idStr)
@@ -246,7 +281,6 @@ func (server *Server) GetUserTx(ctx *gin.Context) {
 	}
 
 	userWithProfileAndRole, err := server.store.GetUserWithProfileAndRoleTX(ctx, id)
-
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -254,8 +288,3 @@ func (server *Server) GetUserTx(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, userWithProfileAndRole)
 }
-
-// TODO: Make a CreateUserTx Handler
-// TODO: Make an UpdateUserTX Handler
-// TODO: Make a DeleteUserTX Handler
-// TODO: Make a GetUserTX Handler
