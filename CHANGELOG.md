@@ -10,6 +10,10 @@ Next Release
 * Get User Transaction and Tests
 * Delete User Transaction and Tests
 * Update User Transaction and Tests
+* Setup Create User Transaction Route
+* Setup Get User Transaction Route
+* Setup Delete User Transaction Route
+* Setup Update User Transaction Route
 
 v1.3.0
 * Adding CI Testing
