@@ -22,15 +22,15 @@ func (server *Server) CreateUser(ctx *gin.Context) {
 		return
 	}
 
+	if server.store == nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("store not initialized")))
+		return
+	}
+
 	arg := db.CreateUserParams{
 		UserName: req.UserName,
 		Email:    req.Email,
 		Password: req.Password,
-	}
-
-	if server.store == nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("store not initialized")))
-		return
 	}
 
 	_, err := server.store.GetUserByEmail(ctx, arg.Email)
@@ -90,14 +90,14 @@ func (server *Server) ListUser(ctx *gin.Context) {
 		return
 	}
 
-	arg := db.ListUsersParams{
-		Limit:  req.PageSize,
-		Offset: (req.PageID - 1) * req.PageSize,
-	}
-
 	if server.store == nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("store not initialized")))
 		return
+	}
+
+	arg := db.ListUsersParams{
+		Limit:  req.PageSize,
+		Offset: (req.PageID - 1) * req.PageSize,
 	}
 
 	users, err := server.store.ListUsers(ctx, arg)
@@ -144,16 +144,16 @@ func (server *Server) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
+	if server.store == nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("store not initialized")))
+		return
+	}
+
 	arg := db.UpdateUserParams{
 		ID:       req.ID,
 		UserName: req.UserName,
 		Email:    req.Email,
 		Password: req.Password,
-	}
-
-	if server.store == nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("store not initialized")))
-		return
 	}
 
 	user, err := server.store.UpdateUser(ctx, arg)
