@@ -136,4 +136,29 @@ func (store *Store) DeleteUserWithProfileAndRoleTX(ctx context.Context, userID u
 	return result, err
 }
 
-//TODO: Make an UpdateUserProfileRoleTx -> and tests?
+func (store *Store) UpdateUserWithProfileAndRoleTX(ctx context.Context, userParams UpdateUserParams, profileParams UpdateUserProfileParams, roleParams UpdateUserRoleParams) (UserTxResult, error) {
+	var result UserTxResult
+
+	err := store.execTx(ctx, func(q *Queries) error {
+		var err error
+
+		result.User, err = q.UpdateUser(ctx, userParams)
+		if err != nil {
+			return err
+		}
+
+		result.UserProfile, err = q.UpdateUserProfile(ctx, profileParams)
+		if err != nil {
+			return err
+		}
+
+		result.UserRole, err = q.UpdateUserRole(ctx, roleParams)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	return result, err
+}
