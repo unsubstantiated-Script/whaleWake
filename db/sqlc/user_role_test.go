@@ -72,7 +72,7 @@ func TestUpdateUserRole(t *testing.T) {
 	role1 := createRandomUserRole(t, user.ID)
 
 	arg := UpdateUserRoleParams{
-		ID:     role1.ID,
+		UserID: role1.ID,
 		RoleID: int32(util.RandomInt(1, 3)),
 	}
 

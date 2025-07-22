@@ -13,7 +13,7 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *;
 -- name: GetUserProfile :one
 SELECT *
 FROM user_profile
-WHERE id = $1 LIMIT 1;
+WHERE user_id = $1 LIMIT 1;
 
 -- name: ListUserProfiles :many
 SELECT *
@@ -32,9 +32,9 @@ SET first_name = $2,
     zip = $8,
     country_code = $9,
     updated_at = STATEMENT_TIMESTAMP()
-WHERE id = $1 RETURNING *;
+WHERE user_id = $1 RETURNING *;
 
 -- name: DeleteUserProfile :one
 DELETE
 FROM user_profile
-WHERE id = $1 RETURNING *;
+WHERE user_id = $1 RETURNING *;
