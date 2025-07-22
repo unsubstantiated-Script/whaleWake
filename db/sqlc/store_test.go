@@ -77,7 +77,7 @@ func TestCreateUserWithProfileAndRoleTx(t *testing.T) {
 	require.Equal(t, userProfile.Zip, userProfileResult.Zip)
 	require.Equal(t, userProfile.CountryCode, userProfileResult.CountryCode)
 
-	_, err = store.GetUserProfile(context.Background(), userProfileResult.ID)
+	_, err = store.GetUserProfile(context.Background(), userProfileResult.UserID)
 	require.NoError(t, err)
 
 	userRoleResult := result.UserRole
@@ -86,7 +86,7 @@ func TestCreateUserWithProfileAndRoleTx(t *testing.T) {
 	require.Equal(t, userResult.ID, userRoleResult.UserID)
 	require.Equal(t, userRole.RoleID, userRoleResult.RoleID)
 
-	_, err = store.GetUserRole(context.Background(), userRoleResult.ID)
+	_, err = store.GetUserRole(context.Background(), userRoleResult.UserID)
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
@@ -253,7 +253,7 @@ func TestUpdateUserWithProfileAndRoleTX(t *testing.T) {
 	}
 
 	userRole := UserRole{
-		RoleID: int32(util.RandomInt(1, 3)),
+		RoleID: 1,
 	}
 
 	result, err := store.CreateUserWithProfileAndRoleTx(context.Background(),
@@ -312,7 +312,7 @@ func TestUpdateUserWithProfileAndRoleTX(t *testing.T) {
 	}
 
 	userRoleUpdate := UserRole{
-		RoleID: int32(util.RandomInt(1, 3)),
+		RoleID: 3,
 	}
 
 	updatedResult, err := store.UpdateUserWithProfileAndRoleTX(context.Background(),

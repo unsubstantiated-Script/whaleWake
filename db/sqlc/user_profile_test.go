@@ -46,11 +46,11 @@ func TestCreateUserProfile(t *testing.T) {
 func TestGetUserProfile(t *testing.T) {
 	user := createRandomUser(t)
 	profile1 := createRandomUserProfile(t, user.ID)
-	profile2, err := testQueries.GetUserProfile(context.Background(), profile1.ID)
+	profile2, err := testQueries.GetUserProfile(context.Background(), profile1.UserID)
 
 	// Cleanup should be run before the require statements because if the require statements fail, the cleanup will not be run
 	t.Cleanup(func() {
-		_, err := testQueries.DeleteUserProfile(context.Background(), profile1.ID)
+		_, err := testQueries.DeleteUserProfile(context.Background(), profile1.UserID)
 		if err != nil {
 			return
 		}
@@ -79,7 +79,7 @@ func TestUpdateUserProfile(t *testing.T) {
 	profile1 := createRandomUserProfile(t, user.ID)
 
 	arg := UpdateUserProfileParams{
-		UserID:        profile1.ID,
+		UserID:        profile1.UserID,
 		FirstName:     util.RandomUserName(),
 		LastName:      util.RandomUserName(),
 		BusinessName:  util.RandomBusinessName(),
@@ -93,7 +93,7 @@ func TestUpdateUserProfile(t *testing.T) {
 	profile2, err := testQueries.UpdateUserProfile(context.Background(), arg)
 
 	t.Cleanup(func() {
-		_, err := testQueries.DeleteUserProfile(context.Background(), profile2.ID)
+		_, err := testQueries.DeleteUserProfile(context.Background(), profile2.UserID)
 		if err != nil {
 			return
 		}
@@ -120,10 +120,10 @@ func TestDeleteUserProfile(t *testing.T) {
 	user := createRandomUser(t)
 	profile1 := createRandomUserProfile(t, user.ID)
 
-	profile1, err := testQueries.DeleteUserProfile(context.Background(), profile1.ID)
+	profile1, err := testQueries.DeleteUserProfile(context.Background(), profile1.UserID)
 	require.NoError(t, err)
 
-	profile2, err := testQueries.GetUserProfile(context.Background(), profile1.ID)
+	profile2, err := testQueries.GetUserProfile(context.Background(), profile1.UserID)
 	require.Error(t, err)
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, profile2)
