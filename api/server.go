@@ -33,6 +33,7 @@ func NewServer(store *db.Store) *Server {
 	router.POST("/usertx", server.CreateUserTx)       // Create a user transaction.
 	router.GET("/usertx/:id", server.GetUserTx)       // Retrieve user transactions.
 	router.DELETE("/usertx/:id", server.DeleteUserTx) // Delete user transactions.
+	router.PUT("/usertx", server.UpdateUserTx)        // Update user transactions.
 
 	server.router = router // Assign the configured router to the server.
 	return server

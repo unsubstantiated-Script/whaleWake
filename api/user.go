@@ -314,4 +314,66 @@ func (server *Server) DeleteUserTx(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, userWithProfileAndRole)
 }
 
+// createUserTxRequest defines the payload for transactional user creation.
+// Includes user, profile, and role fields.
+// All fields are required except for role, which is set internally.
+type updateUserTxRequest struct {
+	ID            uuid.UUID `json:"id" binding:"required"`
+	UserName      string    `json:"user_name"`
+	Email         string    `json:"email"`
+	Password      string    `json:"password"`
+	FirstName     string    `json:"first_name"`
+	LastName      string    `json:"last_name"`
+	BusinessName  string    `json:"business_name"`
+	StreetAddress string    `json:"street_address"`
+	City          string    `json:"city"`
+	State         string    `json:"state"`
+	Zip           string    `json:"zip"`
+	CountryCode   string    `json:"country_code"`
+	RoleID        int32     `json:"role_id"`
+}
+
+func (server *Server) UpdateUserTx(ctx *gin.Context) {
+	var req updateUserTxRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	if server.store == nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("store not initialized")))
+		return
+	}
+
+	updateUserParams := db.UpdateUserParams{
+		ID:       req.ID,
+		UserName: req.UserName,
+		Email:    req.Email,
+		Password: req.Password,
+	}
+
+	updateProfileParams := db.UpdateUserProfileParams{
+		FirstName:     req.FirstName,
+		LastName:      req.LastName,
+		BusinessName:  req.BusinessName,
+		StreetAddress: req.StreetAddress,
+		City:          req.City,
+		State:         req.State,
+		Zip:           req.Zip,
+		CountryCode:   req.CountryCode,
+	}
+
+	updateRoleParams := db.UpdateUserRoleParams{
+		RoleID: req.RoleID,
+	}
+
+	updatedUserWithProfileAndRole, err := server.store.UpdateUserWithProfileAndRoleTX(ctx, updateUserParams, updateProfileParams, updateRoleParams)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, updatedUserWithProfileAndRole)
+}
+
 // TODO: Build List User TX Top to bottom w/ tests...
