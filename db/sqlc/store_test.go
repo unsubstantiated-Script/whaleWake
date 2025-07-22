@@ -322,7 +322,6 @@ func TestUpdateUserWithProfileAndRoleTX(t *testing.T) {
 			Email:    userUpdate.Email,
 			Password: userUpdate.Password},
 		UpdateUserProfileParams{
-			UserID:        result.User.ID,
 			FirstName:     userProfileUpdate.FirstName,
 			LastName:      userProfileUpdate.LastName,
 			BusinessName:  userProfileUpdate.BusinessName,
@@ -333,7 +332,6 @@ func TestUpdateUserWithProfileAndRoleTX(t *testing.T) {
 			CountryCode:   userProfileUpdate.CountryCode,
 		},
 		UpdateUserRoleParams{
-			UserID: result.User.ID,
 			RoleID: userRoleUpdate.RoleID,
 		})
 

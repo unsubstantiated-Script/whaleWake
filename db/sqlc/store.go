@@ -190,10 +190,14 @@ func (store *Store) UpdateUserWithProfileAndRoleTX(ctx context.Context, userPara
 			return err
 		}
 
+		profileParams.UserID = userParams.ID
+
 		result.UserProfile, err = q.UpdateUserProfile(ctx, profileParams)
 		if err != nil {
 			return err
 		}
+
+		roleParams.UserID = userParams.ID
 
 		result.UserRole, err = q.UpdateUserRole(ctx, roleParams)
 		if err != nil {
