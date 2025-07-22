@@ -194,8 +194,8 @@ func (server *Server) UpdateUser(ctx *gin.Context) {
 // All fields are required except for role, which is set internally.
 type createUserTxRequest struct {
 	UserName      string `json:"user_name" binding:"required"`
-	Email         string `json:"email" binding:"required, email"`
-	Password      string `json:"password" binding:"required, min=8,max=32"`
+	Email         string `json:"email" binding:"required,email"`
+	Password      string `json:"password" binding:"required,min=8,max=32"`
 	FirstName     string `json:"first_name" binding:"required"`
 	LastName      string `json:"last_name" binding:"required"`
 	BusinessName  string `json:"business_name" binding:"required"`
