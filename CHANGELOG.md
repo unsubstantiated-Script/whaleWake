@@ -1,6 +1,7 @@
 Next Release
 -
 
+v1.4.0
 * Install Gin v1.6.3
 * Setup Create User Route
 * Setup Get User Route
