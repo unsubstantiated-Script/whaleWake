@@ -30,8 +30,8 @@ func NewServer(store *db.Store) *Server {
 	router.PUT("/users", server.UpdateUser)        // Update user details.
 
 	// User Transaction (TX) Routes
-	router.POST("/usertx", server.CreateUserTx) // Create a user transaction.
-	router.GET("/usertx", server.GetUserTx)     // Retrieve user transactions.
+	router.POST("/usertx", server.CreateUserTx)       // Create a user transaction.
+	router.GET("/usertx/:id", server.GetUserTx)       // Retrieve user transactions.
 
 	server.router = router // Assign the configured router to the server.
 	return server
