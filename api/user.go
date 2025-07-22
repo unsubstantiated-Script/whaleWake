@@ -288,3 +288,30 @@ func (server *Server) GetUserTx(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, userWithProfileAndRole)
 }
+
+// DeleteUserTx handles DELETE /users/tx/:id for transactional user deletion.
+// Validates UUID, checks store initialization, and deletes user with profile and role in a single transaction.
+// Returns 400 for bad UUID, 500 for server errors, 200 for success.
+func (server *Server) DeleteUserTx(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	if server.store == nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("store not initialized")))
+		return
+	}
+
+	userWithProfileAndRole, err := server.store.DeleteUserWithProfileAndRoleTX(ctx, id)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, userWithProfileAndRole)
+}
+
+// TODO: Build List User TX Top to bottom w/ tests...
