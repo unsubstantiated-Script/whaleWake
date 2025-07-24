@@ -90,20 +90,17 @@ func TestCreateUserWithProfileAndRoleTx(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Cleanup(func() {
-		_, err = testQueries.DeleteUserProfile(context.Background(), result.UserProfile.ID)
-		if err != nil {
-			return
-		}
+		_, err = store.DeleteUserWithProfileAndRoleTX(context.Background(), result.User.ID)
+		require.NoError(t, err)
 
-		_, err = testQueries.DeleteUserRole(context.Background(), result.UserRole.ID)
-		if err != nil {
-			return
-		}
+		_, err = store.GetUser(context.Background(), result.User.ID)
+		require.Error(t, err)
 
-		_, err = testQueries.DeleteUser(context.Background(), result.User.ID)
-		if err != nil {
-			return
-		}
+		_, err = store.GetUserProfile(context.Background(), result.UserProfile.ID)
+		require.Error(t, err)
+
+		_, err = store.GetUserRole(context.Background(), result.UserRole.ID)
+		require.Error(t, err)
 	})
 
 }
@@ -164,9 +161,17 @@ func TestGetUserWithProfileAndRoleTx(t *testing.T) {
 	require.Equal(t, result.UserRole.ID, fetched.UserRole.ID)
 
 	t.Cleanup(func() {
-		_, _ = testQueries.DeleteUserProfile(context.Background(), result.UserProfile.ID)
-		_, _ = testQueries.DeleteUserRole(context.Background(), result.UserRole.ID)
-		_, _ = testQueries.DeleteUser(context.Background(), result.User.ID)
+		_, err = store.DeleteUserWithProfileAndRoleTX(context.Background(), result.User.ID)
+		require.NoError(t, err)
+
+		_, err = store.GetUser(context.Background(), result.User.ID)
+		require.Error(t, err)
+
+		_, err = store.GetUserProfile(context.Background(), result.UserProfile.ID)
+		require.Error(t, err)
+
+		_, err = store.GetUserRole(context.Background(), result.UserRole.ID)
+		require.Error(t, err)
 	})
 
 }
@@ -218,17 +223,19 @@ func TestDeleteUserWithProfileAndRoleTX(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, result)
 
-	_, err = store.DeleteUserWithProfileAndRoleTX(context.Background(), result.User.ID)
-	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, err = store.DeleteUserWithProfileAndRoleTX(context.Background(), result.User.ID)
+		require.NoError(t, err)
 
-	_, err = store.GetUser(context.Background(), result.User.ID)
-	require.Error(t, err)
+		_, err = store.GetUser(context.Background(), result.User.ID)
+		require.Error(t, err)
 
-	_, err = store.GetUserProfile(context.Background(), result.UserProfile.ID)
-	require.Error(t, err)
+		_, err = store.GetUserProfile(context.Background(), result.UserProfile.ID)
+		require.Error(t, err)
 
-	_, err = store.GetUserRole(context.Background(), result.UserRole.ID)
-	require.Error(t, err)
+		_, err = store.GetUserRole(context.Background(), result.UserRole.ID)
+		require.Error(t, err)
+	})
 
 }
 
@@ -367,15 +374,17 @@ func TestUpdateUserWithProfileAndRoleTX(t *testing.T) {
 	require.NotEqual(t, result.UserProfile.CountryCode, updatedResult.UserProfile.CountryCode)
 	require.NotEqual(t, result.UserRole.RoleID, updatedResult.UserRole.RoleID)
 
-	_, err = store.DeleteUserWithProfileAndRoleTX(context.Background(), result.User.ID)
-	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, err = store.DeleteUserWithProfileAndRoleTX(context.Background(), result.User.ID)
+		require.NoError(t, err)
 
-	_, err = store.GetUser(context.Background(), result.User.ID)
-	require.Error(t, err)
+		_, err = store.GetUser(context.Background(), result.User.ID)
+		require.Error(t, err)
 
-	_, err = store.GetUserProfile(context.Background(), result.UserProfile.ID)
-	require.Error(t, err)
+		_, err = store.GetUserProfile(context.Background(), result.UserProfile.ID)
+		require.Error(t, err)
 
-	_, err = store.GetUserRole(context.Background(), result.UserRole.ID)
-	require.Error(t, err)
+		_, err = store.GetUserRole(context.Background(), result.UserRole.ID)
+		require.Error(t, err)
+	})
 }

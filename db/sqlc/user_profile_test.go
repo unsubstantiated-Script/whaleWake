@@ -36,10 +36,8 @@ func TestCreateUserProfile(t *testing.T) {
 	profile := createRandomUserProfile(t, user.ID)
 
 	t.Cleanup(func() {
-		_, err := testQueries.DeleteUserProfile(context.Background(), profile.ID)
-		if err != nil {
-			return
-		}
+		_, _ = testQueries.DeleteUserProfile(context.Background(), profile.UserID)
+		_, _ = testQueries.DeleteUser(context.Background(), user.ID)
 	})
 }
 
@@ -50,10 +48,8 @@ func TestGetUserProfile(t *testing.T) {
 
 	// Cleanup should be run before the require statements because if the require statements fail, the cleanup will not be run
 	t.Cleanup(func() {
-		_, err := testQueries.DeleteUserProfile(context.Background(), profile1.UserID)
-		if err != nil {
-			return
-		}
+		_, _ = testQueries.DeleteUserProfile(context.Background(), profile1.UserID)
+		_, _ = testQueries.DeleteUser(context.Background(), user.ID)
 	})
 
 	require.NoError(t, err)
@@ -93,10 +89,8 @@ func TestUpdateUserProfile(t *testing.T) {
 	profile2, err := testQueries.UpdateUserProfile(context.Background(), arg)
 
 	t.Cleanup(func() {
-		_, err := testQueries.DeleteUserProfile(context.Background(), profile2.UserID)
-		if err != nil {
-			return
-		}
+		_, _ = testQueries.DeleteUserProfile(context.Background(), profile2.UserID)
+		_, _ = testQueries.DeleteUser(context.Background(), user.ID)
 	})
 
 	require.NoError(t, err)
@@ -127,6 +121,11 @@ func TestDeleteUserProfile(t *testing.T) {
 	require.Error(t, err)
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, profile2)
+
+	t.Cleanup(func() {
+		_, _ = testQueries.DeleteUserProfile(context.Background(), profile1.UserID)
+		_, _ = testQueries.DeleteUser(context.Background(), user.ID)
+	})
 }
 
 func TestListUserProfiles(t *testing.T) {
@@ -148,10 +147,8 @@ func TestListUserProfiles(t *testing.T) {
 
 	t.Cleanup(func() {
 		for _, profile := range profileSlice {
-			_, err := testQueries.DeleteUserRole(context.Background(), profile.ID)
-			if err != nil {
-				return
-			}
+			_, _ = testQueries.DeleteUserProfile(context.Background(), profile.UserID)
+			_, _ = testQueries.DeleteUser(context.Background(), user.ID)
 		}
 	})
 
@@ -161,4 +158,5 @@ func TestListUserProfiles(t *testing.T) {
 	for _, profile := range profiles {
 		require.NotEmpty(t, profile)
 	}
+
 }
