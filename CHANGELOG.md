@@ -1,6 +1,9 @@
 Next Release
 -
 
+* BCrypt Passwords and corrected Returns
+* Make store an interface and implement SQLStore
+
 v1.4.0
 * Install Gin v1.6.3
 * Setup Create User Route
