@@ -36,10 +36,8 @@ func TestCreateUserRole(t *testing.T) {
 	role := createRandomUserRole(t, user.ID)
 
 	t.Cleanup(func() {
-		_, err := testQueries.DeleteUserRole(context.Background(), role.ID)
-		if err != nil {
-			return
-		}
+		_, _ = testQueries.DeleteUserRole(context.Background(), role.UserID)
+		_, _ = testQueries.DeleteUser(context.Background(), user.ID)
 	})
 }
 
@@ -50,10 +48,8 @@ func TestGetUserRole(t *testing.T) {
 
 	// Cleanup should be run before the require statements because if the require statements fail, the cleanup will not be run
 	t.Cleanup(func() {
-		_, err := testQueries.DeleteUserRole(context.Background(), role1.ID)
-		if err != nil {
-			return
-		}
+		_, _ = testQueries.DeleteUserRole(context.Background(), role1.UserID)
+		_, _ = testQueries.DeleteUser(context.Background(), user.ID)
 	})
 
 	require.NoError(t, err)
@@ -79,10 +75,8 @@ func TestUpdateUserRole(t *testing.T) {
 	role2, err := testQueries.UpdateUserRole(context.Background(), arg)
 
 	t.Cleanup(func() {
-		_, err := testQueries.DeleteUserRole(context.Background(), role2.ID)
-		if err != nil {
-			return
-		}
+		_, _ = testQueries.DeleteUserRole(context.Background(), role2.UserID)
+		_, _ = testQueries.DeleteUser(context.Background(), user.ID)
 	})
 
 	require.NoError(t, err)
@@ -107,6 +101,12 @@ func TestDeleteUserRole(t *testing.T) {
 	require.Error(t, err)
 	require.EqualError(t, err, sql.ErrNoRows.Error())
 	require.Empty(t, role2)
+
+	t.Cleanup(func() {
+		_, _ = testQueries.DeleteUserRole(context.Background(), role1.UserID)
+		_, _ = testQueries.DeleteUser(context.Background(), user.ID)
+	})
+
 }
 
 func TestListUserRoles(t *testing.T) {
@@ -127,10 +127,8 @@ func TestListUserRoles(t *testing.T) {
 
 	t.Cleanup(func() {
 		for _, role := range roleSlice {
-			_, err := testQueries.DeleteUserRole(context.Background(), role.ID)
-			if err != nil {
-				return
-			}
+			_, _ = testQueries.DeleteUserRole(context.Background(), role.UserID)
+			_, _ = testQueries.DeleteUser(context.Background(), user.ID)
 		}
 	})
 
