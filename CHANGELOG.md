@@ -1,6 +1,7 @@
 Next Release
 -
 
+v1.5.0
 * BCrypt Passwords and corrected Returns
 * Make store an interface and implement SQLStore
 
