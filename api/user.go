@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	db "whaleWake/db/sqlc"
+	"whaleWake/util"
 )
 
 // createUserRequest defines the payload for creating a new user.
@@ -18,6 +19,14 @@ type createUserRequest struct {
 	UserName string `json:"user_name" binding:"required"`
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=8,max=32"`
+}
+
+type userResponse struct {
+	UserName   string `json:"user_name"`
+	Email      string `json:"email"`
+	CreatedAt  string `json:"created_at"`
+	UpdatedAt  string `json:"updated_at"`
+	VerifiedAt string `json:"verified_at"`
 }
 
 // CreateUser handles POST /users to create a new user.
@@ -35,13 +44,20 @@ func (server *Server) CreateUser(ctx *gin.Context) {
 		return
 	}
 
+	passHashed, err := util.HashPassword(req.Password)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	arg := db.CreateUserParams{
 		UserName: req.UserName,
 		Email:    req.Email,
-		Password: req.Password,
+		Password: passHashed,
 	}
 
-	_, err := server.store.GetUserByEmail(ctx, arg.Email)
+	_, err = server.store.GetUserByEmail(ctx, arg.Email)
 	if err == nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("User already exists")))
 		return
@@ -53,7 +69,14 @@ func (server *Server) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, user)
+	userResponse := userResponse{
+		UserName:  user.UserName,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt: user.UpdatedAt.Format("2006-01-02 15:04:05"),
+	}
+
+	ctx.JSON(http.StatusOK, userResponse)
 }
 
 // GetUser handles GET /users/:id to retrieve a user by UUID.
@@ -82,7 +105,15 @@ func (server *Server) GetUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, user)
+	userResponse := userResponse{
+		UserName:   user.UserName,
+		Email:      user.Email,
+		CreatedAt:  user.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:  user.UpdatedAt.Format("2006-01-02 15:04:05"),
+		VerifiedAt: user.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
+	}
+
+	ctx.JSON(http.StatusOK, userResponse)
 }
 
 // listUsersRequest defines query parameters for paginated user listing.
@@ -116,12 +147,24 @@ func (server *Server) ListUser(ctx *gin.Context) {
 	}
 
 	users, err := server.store.ListUsers(ctx, arg)
+
+	var usersResponse []userResponse
+	for _, user := range users {
+		usersResponse = append(usersResponse, userResponse{
+			UserName:   user.UserName,
+			Email:      user.Email,
+			CreatedAt:  user.CreatedAt.Format("2006-01-02 15:04:05"),
+			UpdatedAt:  user.UpdatedAt.Format("2006-01-02 15:04:05"),
+			VerifiedAt: user.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
+		})
+	}
+
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	ctx.JSON(http.StatusOK, users)
+	ctx.JSON(http.StatusOK, usersResponse)
 }
 
 // DeleteUser handles DELETE /users/:id to delete a user by UUID.
@@ -144,7 +187,16 @@ func (server *Server) DeleteUser(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 	}
-	ctx.JSON(http.StatusOK, user)
+
+	userResponse := userResponse{
+		UserName:   user.UserName,
+		Email:      user.Email,
+		CreatedAt:  user.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:  user.UpdatedAt.Format("2006-01-02 15:04:05"),
+		VerifiedAt: user.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
+	}
+
+	ctx.JSON(http.StatusOK, userResponse)
 }
 
 // updateUserRequest defines the payload for updating a user.
@@ -173,11 +225,18 @@ func (server *Server) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
+	passHashed, err := util.HashPassword(req.Password)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	arg := db.UpdateUserParams{
 		ID:       req.ID,
 		UserName: req.UserName,
 		Email:    req.Email,
-		Password: req.Password,
+		Password: passHashed,
 	}
 
 	user, err := server.store.UpdateUser(ctx, arg)
@@ -186,7 +245,15 @@ func (server *Server) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, user)
+	userResponse := userResponse{
+		UserName:   user.UserName,
+		Email:      user.Email,
+		CreatedAt:  user.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:  user.UpdatedAt.Format("2006-01-02 15:04:05"),
+		VerifiedAt: user.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
+	}
+
+	ctx.JSON(http.StatusOK, userResponse)
 }
 
 // createUserTxRequest defines the payload for transactional user creation.
@@ -206,6 +273,23 @@ type createUserTxRequest struct {
 	CountryCode   string `json:"country_code" binding:"required"`
 }
 
+type createUserTxResponse struct {
+	UserName      string `json:"user_name"`
+	Email         string `json:"email"`
+	FirstName     string `json:"first_name"`
+	LastName      string `json:"last_name"`
+	BusinessName  string `json:"business_name"`
+	StreetAddress string `json:"street_address"`
+	City          string `json:"city"`
+	State         string `json:"state"`
+	Zip           string `json:"zip"`
+	CountryCode   string `json:"country_code"`
+	RoleID        int32  `json:"role_id"`
+	CreatedAt     string `json:"created_at"`
+	UpdatedAt     string `json:"updated_at"`
+	VerifiedAt    string `json:"verified_at"`
+}
+
 // CreateUserTx handles POST /users/tx for transactional user creation.
 // Creates user, profile, and role in a single transaction.
 // Returns 400 for bad input, 500 for server errors, 200 for success.
@@ -221,10 +305,17 @@ func (server *Server) CreateUserTx(ctx *gin.Context) {
 		return
 	}
 
+	passHashed, err := util.HashPassword(req.Password)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	userParams := db.CreateUserParams{
 		UserName: req.UserName,
 		Email:    req.Email,
-		Password: req.Password,
+		Password: passHashed,
 	}
 
 	profileParams := db.CreateUserProfileParams{
@@ -242,7 +333,7 @@ func (server *Server) CreateUserTx(ctx *gin.Context) {
 		RoleID: 1,
 	}
 
-	_, err := server.store.GetUserByEmail(ctx, userParams.Email)
+	_, err = server.store.GetUserByEmail(ctx, userParams.Email)
 	if err == nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("User already exists")))
 		return
@@ -254,7 +345,24 @@ func (server *Server) CreateUserTx(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, userWithProfileAndRole)
+	userResponse := createUserTxResponse{
+		UserName:      userWithProfileAndRole.User.UserName,
+		Email:         userWithProfileAndRole.User.Email,
+		FirstName:     userWithProfileAndRole.UserProfile.FirstName,
+		LastName:      userWithProfileAndRole.UserProfile.LastName,
+		BusinessName:  userWithProfileAndRole.UserProfile.BusinessName,
+		StreetAddress: userWithProfileAndRole.UserProfile.StreetAddress,
+		City:          userWithProfileAndRole.UserProfile.City,
+		State:         userWithProfileAndRole.UserProfile.State,
+		Zip:           userWithProfileAndRole.UserProfile.Zip,
+		CountryCode:   userWithProfileAndRole.UserProfile.CountryCode,
+		RoleID:        userWithProfileAndRole.UserRole.RoleID,
+		CreatedAt:     userWithProfileAndRole.User.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:     userWithProfileAndRole.User.UpdatedAt.Format("2006-01-02 15:04:05"),
+		VerifiedAt:    userWithProfileAndRole.User.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
+	}
+
+	ctx.JSON(http.StatusOK, userResponse)
 }
 
 // getUserTxRequest defines the payload for transactional user retrieval.
@@ -286,7 +394,24 @@ func (server *Server) GetUserTx(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, userWithProfileAndRole)
+	userResponse := createUserTxResponse{
+		UserName:      userWithProfileAndRole.User.UserName,
+		Email:         userWithProfileAndRole.User.Email,
+		FirstName:     userWithProfileAndRole.UserProfile.FirstName,
+		LastName:      userWithProfileAndRole.UserProfile.LastName,
+		BusinessName:  userWithProfileAndRole.UserProfile.BusinessName,
+		StreetAddress: userWithProfileAndRole.UserProfile.StreetAddress,
+		City:          userWithProfileAndRole.UserProfile.City,
+		State:         userWithProfileAndRole.UserProfile.State,
+		Zip:           userWithProfileAndRole.UserProfile.Zip,
+		CountryCode:   userWithProfileAndRole.UserProfile.CountryCode,
+		RoleID:        userWithProfileAndRole.UserRole.RoleID,
+		CreatedAt:     userWithProfileAndRole.User.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:     userWithProfileAndRole.User.UpdatedAt.Format("2006-01-02 15:04:05"),
+		VerifiedAt:    userWithProfileAndRole.User.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
+	}
+
+	ctx.JSON(http.StatusOK, userResponse)
 }
 
 // DeleteUserTx handles DELETE /users/tx/:id for transactional user deletion.
@@ -311,7 +436,24 @@ func (server *Server) DeleteUserTx(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, userWithProfileAndRole)
+	userResponse := createUserTxResponse{
+		UserName:      userWithProfileAndRole.User.UserName,
+		Email:         userWithProfileAndRole.User.Email,
+		FirstName:     userWithProfileAndRole.UserProfile.FirstName,
+		LastName:      userWithProfileAndRole.UserProfile.LastName,
+		BusinessName:  userWithProfileAndRole.UserProfile.BusinessName,
+		StreetAddress: userWithProfileAndRole.UserProfile.StreetAddress,
+		City:          userWithProfileAndRole.UserProfile.City,
+		State:         userWithProfileAndRole.UserProfile.State,
+		Zip:           userWithProfileAndRole.UserProfile.Zip,
+		CountryCode:   userWithProfileAndRole.UserProfile.CountryCode,
+		RoleID:        userWithProfileAndRole.UserRole.RoleID,
+		CreatedAt:     userWithProfileAndRole.User.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:     userWithProfileAndRole.User.UpdatedAt.Format("2006-01-02 15:04:05"),
+		VerifiedAt:    userWithProfileAndRole.User.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
+	}
+
+	ctx.JSON(http.StatusOK, userResponse)
 }
 
 // createUserTxRequest defines the payload for transactional user creation.
@@ -345,11 +487,18 @@ func (server *Server) UpdateUserTx(ctx *gin.Context) {
 		return
 	}
 
+	passHashed, err := util.HashPassword(req.Password)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	updateUserParams := db.UpdateUserParams{
 		ID:       req.ID,
 		UserName: req.UserName,
 		Email:    req.Email,
-		Password: req.Password,
+		Password: passHashed,
 	}
 
 	updateProfileParams := db.UpdateUserProfileParams{
@@ -373,7 +522,22 @@ func (server *Server) UpdateUserTx(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, updatedUserWithProfileAndRole)
-}
+	userResponse := createUserTxResponse{
+		UserName:      updatedUserWithProfileAndRole.User.UserName,
+		Email:         updatedUserWithProfileAndRole.User.Email,
+		FirstName:     updatedUserWithProfileAndRole.UserProfile.FirstName,
+		LastName:      updatedUserWithProfileAndRole.UserProfile.LastName,
+		BusinessName:  updatedUserWithProfileAndRole.UserProfile.BusinessName,
+		StreetAddress: updatedUserWithProfileAndRole.UserProfile.StreetAddress,
+		City:          updatedUserWithProfileAndRole.UserProfile.City,
+		State:         updatedUserWithProfileAndRole.UserProfile.State,
+		Zip:           updatedUserWithProfileAndRole.UserProfile.Zip,
+		CountryCode:   updatedUserWithProfileAndRole.UserProfile.CountryCode,
+		RoleID:        updatedUserWithProfileAndRole.UserRole.RoleID,
+		CreatedAt:     updatedUserWithProfileAndRole.User.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:     updatedUserWithProfileAndRole.User.UpdatedAt.Format("2006-01-02 15:04:05"),
+		VerifiedAt:    updatedUserWithProfileAndRole.User.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
+	}
 
-// TODO: Build List User TX Top to bottom w/ tests...
+	ctx.JSON(http.StatusOK, userResponse)
+}
