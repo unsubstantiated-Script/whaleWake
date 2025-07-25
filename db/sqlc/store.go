@@ -9,7 +9,15 @@ import (
 
 // Store provides all functions to execute database queries and transactions.
 // It embeds *Queries to allow direct access to query methods and maintains a reference to the database connection.
-type Store struct {
+type Store interface {
+	Querier
+	CreateUserWithProfileAndRoleTx(ctx context.Context, userParams CreateUserParams, profileParams CreateUserProfileParams, roleParams CreateUserRoleParams) (UserTxResult, error)
+	GetUserWithProfileAndRoleTX(ctx context.Context, userID uuid.UUID) (UserTxResult, error)
+	DeleteUserWithProfileAndRoleTX(ctx context.Context, userID uuid.UUID) (UserTxResult, error)
+	UpdateUserWithProfileAndRoleTX(ctx context.Context, userParams UpdateUserParams, profileParams UpdateUserProfileParams, roleParams UpdateUserRoleParams) (UserTxResult, error)
+}
+
+type SQLStore struct {
 	*Queries
 	db *sql.DB
 }
@@ -19,8 +27,8 @@ type Store struct {
 // - db: A pointer to the database connection.
 // Returns:
 // - A pointer to the initialized Store.
-func NewStore(db *sql.DB) *Store {
-	return &Store{
+func NewStore(db *sql.DB) Store {
+	return &SQLStore{
 		db:      db,
 		Queries: New(db),
 	}
@@ -32,7 +40,7 @@ func NewStore(db *sql.DB) *Store {
 // - fn: A function that takes *Queries and performs database operations.
 // Returns:
 // - An error if the transaction fails or the function returns an error.
-func (store *Store) execTx(ctx context.Context, fn func(*Queries) error) error {
+func (store *SQLStore) execTx(ctx context.Context, fn func(*Queries) error) error {
 	tx, err := store.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -73,7 +81,7 @@ type UserTxResult struct {
 // Returns:
 // - A UserTxResult containing the created user, profile, and role.
 // - An error if the transaction fails.
-func (store *Store) CreateUserWithProfileAndRoleTx(ctx context.Context, userParams CreateUserParams, profileParams CreateUserProfileParams, roleParams CreateUserRoleParams) (UserTxResult, error) {
+func (store *SQLStore) CreateUserWithProfileAndRoleTx(ctx context.Context, userParams CreateUserParams, profileParams CreateUserProfileParams, roleParams CreateUserRoleParams) (UserTxResult, error) {
 	var result UserTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
@@ -111,7 +119,7 @@ func (store *Store) CreateUserWithProfileAndRoleTx(ctx context.Context, userPara
 // Returns:
 // - A UserTxResult containing the user, profile, and role.
 // - An error if the transaction fails or the user does not exist.
-func (store *Store) GetUserWithProfileAndRoleTX(ctx context.Context, userID uuid.UUID) (UserTxResult, error) {
+func (store *SQLStore) GetUserWithProfileAndRoleTX(ctx context.Context, userID uuid.UUID) (UserTxResult, error) {
 	var result UserTxResult
 	err := store.execTx(ctx, func(q *Queries) error {
 		var err error
@@ -144,7 +152,7 @@ func (store *Store) GetUserWithProfileAndRoleTX(ctx context.Context, userID uuid
 // Returns:
 // - A UserTxResult containing the deleted user, profile, and role.
 // - An error if the transaction fails or the user does not exist.
-func (store *Store) DeleteUserWithProfileAndRoleTX(ctx context.Context, userID uuid.UUID) (UserTxResult, error) {
+func (store *SQLStore) DeleteUserWithProfileAndRoleTX(ctx context.Context, userID uuid.UUID) (UserTxResult, error) {
 	var result UserTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {
@@ -179,7 +187,7 @@ func (store *Store) DeleteUserWithProfileAndRoleTX(ctx context.Context, userID u
 // Returns:
 // - A UserTxResult containing the updated user, profile, and role.
 // - An error if the transaction fails or the user does not exist.
-func (store *Store) UpdateUserWithProfileAndRoleTX(ctx context.Context, userParams UpdateUserParams, profileParams UpdateUserProfileParams, roleParams UpdateUserRoleParams) (UserTxResult, error) {
+func (store *SQLStore) UpdateUserWithProfileAndRoleTX(ctx context.Context, userParams UpdateUserParams, profileParams UpdateUserProfileParams, roleParams UpdateUserRoleParams) (UserTxResult, error) {
 	var result UserTxResult
 
 	err := store.execTx(ctx, func(q *Queries) error {

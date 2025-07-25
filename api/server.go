@@ -7,7 +7,7 @@ import (
 
 // Server serves HTTP requests for the application.
 type Server struct {
-	store  *db.Store   // Database store for executing queries.
+	store  db.Store    // Database store for executing queries.
 	router *gin.Engine // HTTP router for handling API routes.
 }
 
@@ -16,7 +16,7 @@ type Server struct {
 // - store: A pointer to the db.Store instance for database operations.
 // Returns:
 // - A pointer to the newly created Server instance.
-func NewServer(store *db.Store) *Server {
+func NewServer(store db.Store) *Server {
 	server := &Server{
 		store: store,
 	}
