@@ -16,7 +16,7 @@ v1.4.0
 * Delete User Transaction and Tests
 * Update User Transaction and Tests
 * Setup Create User Transaction Route
-* Setup Get User Transaction Route
+* Setup Get User Transaction Routea
 * Setup Delete User Transaction Route
 * Setup Update User Transaction Route
 
