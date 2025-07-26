@@ -22,11 +22,12 @@ type createUserRequest struct {
 }
 
 type userResponse struct {
-	UserName   string `json:"user_name"`
-	Email      string `json:"email"`
-	CreatedAt  string `json:"created_at"`
-	UpdatedAt  string `json:"updated_at"`
-	VerifiedAt string `json:"verified_at"`
+	ID         uuid.UUID `json:"id"`
+	UserName   string    `json:"user_name"`
+	Email      string    `json:"email"`
+	CreatedAt  string    `json:"created_at"`
+	UpdatedAt  string    `json:"updated_at"`
+	VerifiedAt string    `json:"verified_at"`
 }
 
 // CreateUser handles POST /users to create a new user.
@@ -70,6 +71,7 @@ func (server *Server) CreateUser(ctx *gin.Context) {
 	}
 
 	userResponse := userResponse{
+		ID:        user.ID,
 		UserName:  user.UserName,
 		Email:     user.Email,
 		CreatedAt: user.CreatedAt.Format("2006-01-02 15:04:05"),
@@ -106,6 +108,7 @@ func (server *Server) GetUser(ctx *gin.Context) {
 	}
 
 	userResponse := userResponse{
+		ID:         user.ID,
 		UserName:   user.UserName,
 		Email:      user.Email,
 		CreatedAt:  user.CreatedAt.Format("2006-01-02 15:04:05"),
@@ -151,6 +154,7 @@ func (server *Server) ListUser(ctx *gin.Context) {
 	var usersResponse []userResponse
 	for _, user := range users {
 		usersResponse = append(usersResponse, userResponse{
+			ID:         user.ID,
 			UserName:   user.UserName,
 			Email:      user.Email,
 			CreatedAt:  user.CreatedAt.Format("2006-01-02 15:04:05"),
@@ -189,6 +193,7 @@ func (server *Server) DeleteUser(ctx *gin.Context) {
 	}
 
 	userResponse := userResponse{
+		ID:         user.ID,
 		UserName:   user.UserName,
 		Email:      user.Email,
 		CreatedAt:  user.CreatedAt.Format("2006-01-02 15:04:05"),
@@ -246,6 +251,7 @@ func (server *Server) UpdateUser(ctx *gin.Context) {
 	}
 
 	userResponse := userResponse{
+		ID:         user.ID,
 		UserName:   user.UserName,
 		Email:      user.Email,
 		CreatedAt:  user.CreatedAt.Format("2006-01-02 15:04:05"),
@@ -274,20 +280,21 @@ type createUserTxRequest struct {
 }
 
 type createUserTxResponse struct {
-	UserName      string `json:"user_name"`
-	Email         string `json:"email"`
-	FirstName     string `json:"first_name"`
-	LastName      string `json:"last_name"`
-	BusinessName  string `json:"business_name"`
-	StreetAddress string `json:"street_address"`
-	City          string `json:"city"`
-	State         string `json:"state"`
-	Zip           string `json:"zip"`
-	CountryCode   string `json:"country_code"`
-	RoleID        int32  `json:"role_id"`
-	CreatedAt     string `json:"created_at"`
-	UpdatedAt     string `json:"updated_at"`
-	VerifiedAt    string `json:"verified_at"`
+	ID            uuid.UUID `json:"id"`
+	UserName      string    `json:"user_name"`
+	Email         string    `json:"email"`
+	FirstName     string    `json:"first_name"`
+	LastName      string    `json:"last_name"`
+	BusinessName  string    `json:"business_name"`
+	StreetAddress string    `json:"street_address"`
+	City          string    `json:"city"`
+	State         string    `json:"state"`
+	Zip           string    `json:"zip"`
+	CountryCode   string    `json:"country_code"`
+	RoleID        int32     `json:"role_id"`
+	CreatedAt     string    `json:"created_at"`
+	UpdatedAt     string    `json:"updated_at"`
+	VerifiedAt    string    `json:"verified_at"`
 }
 
 // CreateUserTx handles POST /users/tx for transactional user creation.
@@ -346,6 +353,7 @@ func (server *Server) CreateUserTx(ctx *gin.Context) {
 	}
 
 	userResponse := createUserTxResponse{
+		ID:            userWithProfileAndRole.User.ID,
 		UserName:      userWithProfileAndRole.User.UserName,
 		Email:         userWithProfileAndRole.User.Email,
 		FirstName:     userWithProfileAndRole.UserProfile.FirstName,
@@ -395,6 +403,7 @@ func (server *Server) GetUserTx(ctx *gin.Context) {
 	}
 
 	userResponse := createUserTxResponse{
+		ID:            userWithProfileAndRole.User.ID,
 		UserName:      userWithProfileAndRole.User.UserName,
 		Email:         userWithProfileAndRole.User.Email,
 		FirstName:     userWithProfileAndRole.UserProfile.FirstName,
@@ -437,6 +446,7 @@ func (server *Server) DeleteUserTx(ctx *gin.Context) {
 	}
 
 	userResponse := createUserTxResponse{
+		ID:            userWithProfileAndRole.User.ID,
 		UserName:      userWithProfileAndRole.User.UserName,
 		Email:         userWithProfileAndRole.User.Email,
 		FirstName:     userWithProfileAndRole.UserProfile.FirstName,
@@ -523,6 +533,7 @@ func (server *Server) UpdateUserTx(ctx *gin.Context) {
 	}
 
 	userResponse := createUserTxResponse{
+		ID:            updatedUserWithProfileAndRole.User.ID,
 		UserName:      updatedUserWithProfileAndRole.User.UserName,
 		Email:         updatedUserWithProfileAndRole.User.Email,
 		FirstName:     updatedUserWithProfileAndRole.UserProfile.FirstName,
