@@ -16,7 +16,7 @@ type PasetoMaker struct {
 
 // GetPasetoSymmetricKey Loading in the PASETO symmetric key from the .env file
 func getPasetoSymmetricKey() string {
-	err := godotenv.Load()
+	err := godotenv.Load("../.env")
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
