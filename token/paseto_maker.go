@@ -3,10 +3,9 @@ package token
 import (
 	"aidanwoods.dev/go-paseto"
 	"github.com/google/uuid"
-	"github.com/joho/godotenv"
 	"log"
-	"os"
 	"time"
+	"whaleWake/util"
 )
 
 type PasetoMaker struct {
@@ -14,19 +13,16 @@ type PasetoMaker struct {
 	implicit     []byte
 }
 
-// GetPasetoSymmetricKey Loading in the PASETO symmetric key from the .env file
-func getPasetoSymmetricKey() string {
-	err := godotenv.Load("../.env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	return os.Getenv("PASETO_SYMMETRIC_KEY")
-}
-
 // NewPasetoMaker creates a new PasetoMaker instance with the provided symmetric key.
 // It returns an error if the key is not valid.
 func NewPasetoMaker() (Maker, error) {
-	key := getPasetoSymmetricKey()
+
+	config, err := util.LoadConfig("..")
+	if err != nil {
+		log.Fatal("Unable to load config:", err)
+	}
+
+	key := config.PASETO_SYMMETRIC_KEY
 
 	if key == "" {
 		return nil, ErrMissingPasetoEnvVariable

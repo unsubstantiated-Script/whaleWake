@@ -2,12 +2,12 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"log"
 	"os"
 	"testing"
+	"whaleWake/util"
 )
 
 var testQueries *Queries
@@ -23,13 +23,13 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Error loading .env file")
 	}
 
-	// Utilizing .env vars, so keeping these local variables. b
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PWORD")
-	dbDriver := "postgres"
-	dbSource := fmt.Sprintf("postgresql://%s:%s@localhost:5432/whale_wake_users?sslmode=disable", dbUser, dbPassword)
+	// Load environment variables from .env file
+	config, err := util.LoadConfig("../../")
+	if err != nil {
+		log.Fatalf("Error loading config: %v", err)
+	}
 
-	testDB, err = sql.Open(dbDriver, dbSource)
+	testDB, err = sql.Open(config.DB_DRIVER, config.DB_SOURCE)
 
 	if err != nil {
 		log.Fatal("Unable to connect to the db:", err)
