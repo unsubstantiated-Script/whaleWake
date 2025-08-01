@@ -114,7 +114,7 @@ func (maker *PasetoMaker) RefreshToken(token string) (string, error) {
 	}
 
 	// Create a new token with the same user ID and a new expiration time
-	newToken, err := maker.CreateToken(payload.Username, time.Minute*30) // Example: 24 hours duration
+	newToken, err := maker.CreateToken(payload.Username, time.Minute*15) // Example: 24 hours duration
 	if err != nil {
 		return "", err
 	}

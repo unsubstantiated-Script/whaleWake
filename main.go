@@ -20,7 +20,7 @@ func main() {
 	}
 
 	// Open a connection to the database.
-	conn, err := sql.Open(config.DB_DRIVER, config.DB_SOURCE)
+	conn, err := sql.Open(config.DBDriver, config.DBSource)
 	if err != nil {
 		log.Fatal("Unable to connect to the db:", err)
 	}
@@ -29,14 +29,14 @@ func main() {
 	store := db.NewStore(conn)
 
 	// Create a new server instance with the store.
-	server, err := api.NewServer(store)
+	server, err := api.NewServer(config, store)
 
 	if err != nil {
-		log.Fatal("Unable to start the server:", err)
+		log.Fatal("Unable to create the server:", err)
 	}
 
 	// Start the HTTP server on the specified address.
-	err = server.Start(config.SERVER_ADDRESS)
+	err = server.Start(config.SeverAddress)
 	if err != nil {
 		log.Fatal("Unable to start the server:", err)
 	}

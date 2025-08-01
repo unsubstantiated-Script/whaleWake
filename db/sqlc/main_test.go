@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Error loading config: %v", err)
 	}
 
-	testDB, err = sql.Open(config.DB_DRIVER, config.DB_SOURCE)
+	testDB, err = sql.Open(config.DBDriver, config.DBSource)
 
 	if err != nil {
 		log.Fatal("Unable to connect to the db:", err)
