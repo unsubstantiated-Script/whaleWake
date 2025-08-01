@@ -3,9 +3,7 @@ package token
 import (
 	"aidanwoods.dev/go-paseto"
 	"github.com/google/uuid"
-	"log"
 	"time"
-	"whaleWake/util"
 )
 
 type PasetoMaker struct {
@@ -15,15 +13,7 @@ type PasetoMaker struct {
 
 // NewPasetoMaker creates a new PasetoMaker instance with the provided symmetric key.
 // It returns an error if the key is not valid.
-func NewPasetoMaker() (Maker, error) {
-
-	config, err := util.LoadConfig("..")
-	if err != nil {
-		log.Fatal("Unable to load config:", err)
-	}
-
-	key := config.PASETO_SYMMETRIC_KEY
-
+func NewPasetoMaker(key string) (Maker, error) {
 	if key == "" {
 		return nil, ErrMissingPasetoEnvVariable
 	}

@@ -11,7 +11,7 @@ var (
 	ErrExpiredToken = errors.New("token has expired")
 	// ErrInvalidToken is returned when a token is invalid.
 	ErrInvalidToken                      = errors.New("invalid token")
-	ErrMissingPasetoEnvVariable          = errors.New("invalid paseto symmetric key, please set the PASETO_SYMMETRIC_KEY environment variable")
+	ErrMissingPasetoEnvVariable          = errors.New("invalid paseto symmetric key")
 	ErrFailedHexToSymmetricKeyConversion = errors.New("failed to convert hex string to symmetric key")
 )
 

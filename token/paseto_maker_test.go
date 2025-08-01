@@ -9,7 +9,10 @@ import (
 
 func TestPasetoMaker(t *testing.T) {
 
-	maker, err := NewPasetoMaker()
+	config, err := util.LoadConfig("..")
+	require.NoError(t, err)
+
+	maker, err := NewPasetoMaker(config.TokenSymmetricKey)
 
 	if err != nil {
 		t.Fatalf("Failed to create PasetoMaker: %v", err)
@@ -37,7 +40,10 @@ func TestPasetoMaker(t *testing.T) {
 }
 
 func TestExpiredPasetoToken(t *testing.T) {
-	maker, err := NewPasetoMaker()
+	config, err := util.LoadConfig("..")
+	require.NoError(t, err)
+
+	maker, err := NewPasetoMaker(config.TokenSymmetricKey)
 	require.NoError(t, err)
 
 	token, err := maker.CreateToken(util.RandomUserName(), -time.Minute)
