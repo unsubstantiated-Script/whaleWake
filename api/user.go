@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	db "whaleWake/db/sqlc"
+	"whaleWake/token"
 	"whaleWake/util"
 )
 
@@ -120,6 +121,13 @@ func (server *Server) GetUser(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	if user.ID != authPayload.UserID && authPayload.RoleID != 3 {
+		ctx.JSON(http.StatusForbidden, errorResponse(errors.New("You are not authorized to view this user")))
+		return
+	}
+
 	userResponse := newUserResponse(user)
 
 	ctx.JSON(http.StatusOK, userResponse)
@@ -147,6 +155,13 @@ func (server *Server) ListUser(ctx *gin.Context) {
 
 	if server.store == nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("store not initialized")))
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	if authPayload.RoleID != 3 {
+		ctx.JSON(http.StatusForbidden, errorResponse(errors.New("You are not authorized to view these users")))
 		return
 	}
 
@@ -193,6 +208,13 @@ func (server *Server) DeleteUser(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	if authPayload.RoleID != 3 {
+		ctx.JSON(http.StatusForbidden, errorResponse(errors.New("You are not authorized to delete this user")))
+		return
+	}
+
 	user, err := server.store.DeleteUser(ctx, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -226,6 +248,13 @@ func (server *Server) UpdateUser(ctx *gin.Context) {
 
 	if server.store == nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("store not initialized")))
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	if req.ID != authPayload.UserID && authPayload.RoleID != 3 {
+		ctx.JSON(http.StatusForbidden, errorResponse(errors.New("You are not authorized to view this user")))
 		return
 	}
 
@@ -394,6 +423,13 @@ func (server *Server) GetUserTx(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	if userWithProfileAndRole.User.ID != authPayload.UserID && authPayload.RoleID != 3 {
+		ctx.JSON(http.StatusForbidden, errorResponse(errors.New("You are not authorized to view this user")))
+		return
+	}
+
 	//TODO: sort this out like newUserResponse
 	userResponse := createUserTxResponse{
 		ID:            userWithProfileAndRole.User.ID,
@@ -429,6 +465,13 @@ func (server *Server) DeleteUserTx(ctx *gin.Context) {
 
 	if server.store == nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("store not initialized")))
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	if authPayload.RoleID != 3 {
+		ctx.JSON(http.StatusForbidden, errorResponse(errors.New("You are not authorized to delete users")))
 		return
 	}
 
@@ -487,6 +530,13 @@ func (server *Server) UpdateUserTx(ctx *gin.Context) {
 
 	if server.store == nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(errors.New("store not initialized")))
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	if req.ID != authPayload.UserID && authPayload.RoleID != 3 {
+		ctx.JSON(http.StatusForbidden, errorResponse(errors.New("You are not authorized to update this user")))
 		return
 	}
 
