@@ -81,6 +81,14 @@ func (server *Server) CreateUser(ctx *gin.Context) {
 		return
 	}
 
+	//We're going to give the user a Role off the rip that way we can Auth roles later.
+	userRoleParams := db.CreateUserRoleParams{
+		UserID: user.ID,
+		RoleID: 1,
+	}
+
+	_, err = server.store.CreateUserRole(ctx, userRoleParams)
+
 	userResponse := newUserResponse(user)
 
 	ctx.JSON(http.StatusOK, userResponse)
@@ -576,8 +584,15 @@ func (server *Server) LoginUser(ctx *gin.Context) {
 		return
 	}
 
+	userRole, err := server.store.GetUserRole(ctx, user.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	accessToken, err := server.tokenMaker.CreateToken(
-		user.UserName,
+		user.ID,
+		int(userRole.RoleID),
 		server.config.AccessTokenDuration,
 	)
 
