@@ -19,13 +19,14 @@ var (
 // It includes the user ID, issued at time, expiration time, and any other relevant claims.
 type Payload struct {
 	ID        uuid.UUID `json:"id"`         // Unique identifier for the token
-	Username  string    `json:"username"`   // The ID of the user associated with the token
+	UserID    uuid.UUID `json:"user_id"`    // The ID of the user associated with the token
+	RoleID    int       `json:"role_id"`    // RoleID represents the role identifier associated with the token.
 	IssuedAt  time.Time `json:"issued_at"`  // The time when the token was issued in Unix timestamp format
 	ExpiredAt time.Time `json:"expired_at"` // The expiration time of the token in Unix timestamp format
 }
 
 // NewPayload creates a new Payload instance with the given user ID and expiration duration.
-func NewPayload(username string, duration time.Duration) (*Payload, error) {
+func NewPayload(userID uuid.UUID, roleID int, duration time.Duration) (*Payload, error) {
 	tokenID, err := uuid.NewRandom()
 	if err != nil {
 		return nil, err
@@ -33,7 +34,8 @@ func NewPayload(username string, duration time.Duration) (*Payload, error) {
 
 	payload := &Payload{
 		ID:        tokenID,
-		Username:  username,
+		UserID:    userID,
+		RoleID:    roleID,
 		IssuedAt:  time.Now(),
 		ExpiredAt: time.Now().Add(duration),
 	}

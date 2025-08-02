@@ -3,6 +3,7 @@ package token
 import (
 	"aidanwoods.dev/go-paseto"
 	"github.com/google/uuid"
+	"strconv"
 	"time"
 )
 
@@ -30,7 +31,7 @@ func NewPasetoMaker(key string) (Maker, error) {
 }
 
 // CreateToken create a new token for an specific user and duration
-func (maker *PasetoMaker) CreateToken(username string, duration time.Duration) (string, error) {
+func (maker *PasetoMaker) CreateToken(userID uuid.UUID, roleID int, duration time.Duration) (string, error) {
 	// Crete paseto token
 	token := paseto.NewToken()
 
@@ -42,7 +43,8 @@ func (maker *PasetoMaker) CreateToken(username string, duration time.Duration) (
 	}
 
 	token.Set("id", tokenID.String())
-	token.Set("username", username)
+	token.Set("user_id", userID)
+	token.Set("role_id", strconv.Itoa(int(roleID)))
 	token.SetIssuedAt(time.Now())
 	token.SetExpiration(time.Now().Add(duration))
 
@@ -73,10 +75,18 @@ func getPayloadFromToken(t *paseto.Token) (*Payload, error) {
 		return nil, ErrInvalidToken
 	}
 
-	username, err := t.GetString("username")
+	userIDStr, err := t.GetString("user_id")
 	if err != nil {
 		return nil, ErrInvalidToken
 	}
+	userID := uuid.MustParse(userIDStr)
+
+	roleIDStr, err := t.GetString("role_id")
+	if err != nil {
+		return nil, ErrInvalidToken
+	}
+
+	roleID, err := strconv.Atoi(roleIDStr)
 
 	issuedAt, err := t.GetIssuedAt()
 	if err != nil {
@@ -90,7 +100,8 @@ func getPayloadFromToken(t *paseto.Token) (*Payload, error) {
 
 	return &Payload{
 		ID:        uuid.MustParse(id),
-		Username:  username,
+		UserID:    userID,
+		RoleID:    roleID,
 		IssuedAt:  issuedAt,
 		ExpiredAt: expiredAt,
 	}, nil
@@ -104,7 +115,7 @@ func (maker *PasetoMaker) RefreshToken(token string) (string, error) {
 	}
 
 	// Create a new token with the same user ID and a new expiration time
-	newToken, err := maker.CreateToken(payload.Username, time.Minute*15) // Example: 24 hours duration
+	newToken, err := maker.CreateToken(payload.UserID, payload.RoleID, time.Minute*15) // Example: 24 hours duration
 	if err != nil {
 		return "", err
 	}
