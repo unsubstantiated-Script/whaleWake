@@ -41,19 +41,27 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 
 func (server *Server) setupRouter() {
 	router := gin.Default()
-	// Basic User CRUD Routes
-	router.POST("/users", server.CreateUser)       // Create a new user.
-	router.GET("/users/:id", server.GetUser)       // Retrieve a user by ID.
-	router.GET("/users", server.ListUser)          // List all users.
-	router.DELETE("/users/:id", server.DeleteUser) // Delete a user by ID.
-	router.PUT("/users", server.UpdateUser)        // Update user details.
-	router.POST("/users/login", server.LoginUser)  // User login route.
+	// Basic User Routes
+	router.POST("/users", server.CreateUser)      // Create a new user.
+	router.POST("/users/login", server.LoginUser) // User login route.
 
 	// User Transaction (TX) Routes
-	router.POST("/usertx", server.CreateUserTx)       // Create a user transaction.
-	router.GET("/usertx/:id", server.GetUserTx)       // Retrieve user transactions.
-	router.DELETE("/usertx/:id", server.DeleteUserTx) // Delete user transactions.
-	router.PUT("/usertx", server.UpdateUserTx)        // Update user transactions.
+	router.POST("/usertx", server.CreateUserTx) // Create a user transaction.
+
+	// Authorized routes only.
+	authRoutes := router.Group("/").Use(authMiddleware(server.tokenMaker))
+
+	// Basic User Routes
+	authRoutes.GET("/users/:id", server.GetUser)       // Retrieve a user by ID. 1 Authed for self only. Admin all.
+	authRoutes.GET("/users", server.ListUser)          // List all users. Admin only.
+	authRoutes.DELETE("/users/:id", server.DeleteUser) // Delete a user by ID. Authorized Route. Admin only.
+	authRoutes.PUT("/users", server.UpdateUser)        // Update user details. Authed for self only. Admin all.
+
+	// User Transaction (TX) Routes
+	authRoutes.GET("/usertx/:id", server.GetUserTx)       // Retrieve user transactions. 1 Authed for self only. Admin all.
+	authRoutes.DELETE("/usertx/:id", server.DeleteUserTx) // Delete user transactions. Admin only.
+	authRoutes.PUT("/usertx", server.UpdateUserTx)        // Update user transactions. Authed for self only. Admin all.
+
 	server.router = router
 }
 
