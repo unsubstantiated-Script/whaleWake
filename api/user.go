@@ -318,6 +318,26 @@ type createUserTxResponse struct {
 	VerifiedAt    string    `json:"verified_at"`
 }
 
+func newUserTXResponse(userWithProfileAndRole db.UserTxResult) createUserTxResponse {
+	return createUserTxResponse{
+		ID:            userWithProfileAndRole.User.ID,
+		UserName:      userWithProfileAndRole.User.UserName,
+		Email:         userWithProfileAndRole.User.Email,
+		FirstName:     userWithProfileAndRole.UserProfile.FirstName,
+		LastName:      userWithProfileAndRole.UserProfile.LastName,
+		BusinessName:  userWithProfileAndRole.UserProfile.BusinessName,
+		StreetAddress: userWithProfileAndRole.UserProfile.StreetAddress,
+		City:          userWithProfileAndRole.UserProfile.City,
+		State:         userWithProfileAndRole.UserProfile.State,
+		Zip:           userWithProfileAndRole.UserProfile.Zip,
+		CountryCode:   userWithProfileAndRole.UserProfile.CountryCode,
+		RoleID:        userWithProfileAndRole.UserRole.RoleID,
+		CreatedAt:     userWithProfileAndRole.User.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:     userWithProfileAndRole.User.UpdatedAt.Format("2006-01-02 15:04:05"),
+		VerifiedAt:    userWithProfileAndRole.User.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
+	}
+}
+
 // CreateUserTx handles POST /users/tx for transactional user creation.
 // Creates user, profile, and role in a single transaction.
 // Returns 400 for bad input, 500 for server errors, 200 for success.
@@ -373,23 +393,7 @@ func (server *Server) CreateUserTx(ctx *gin.Context) {
 		return
 	}
 
-	userResponse := createUserTxResponse{
-		ID:            userWithProfileAndRole.User.ID,
-		UserName:      userWithProfileAndRole.User.UserName,
-		Email:         userWithProfileAndRole.User.Email,
-		FirstName:     userWithProfileAndRole.UserProfile.FirstName,
-		LastName:      userWithProfileAndRole.UserProfile.LastName,
-		BusinessName:  userWithProfileAndRole.UserProfile.BusinessName,
-		StreetAddress: userWithProfileAndRole.UserProfile.StreetAddress,
-		City:          userWithProfileAndRole.UserProfile.City,
-		State:         userWithProfileAndRole.UserProfile.State,
-		Zip:           userWithProfileAndRole.UserProfile.Zip,
-		CountryCode:   userWithProfileAndRole.UserProfile.CountryCode,
-		RoleID:        userWithProfileAndRole.UserRole.RoleID,
-		CreatedAt:     userWithProfileAndRole.User.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt:     userWithProfileAndRole.User.UpdatedAt.Format("2006-01-02 15:04:05"),
-		VerifiedAt:    userWithProfileAndRole.User.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
-	}
+	userResponse := newUserTXResponse(userWithProfileAndRole)
 
 	ctx.JSON(http.StatusOK, userResponse)
 }
@@ -430,24 +434,7 @@ func (server *Server) GetUserTx(ctx *gin.Context) {
 		return
 	}
 
-	//TODO: sort this out like newUserResponse
-	userResponse := createUserTxResponse{
-		ID:            userWithProfileAndRole.User.ID,
-		UserName:      userWithProfileAndRole.User.UserName,
-		Email:         userWithProfileAndRole.User.Email,
-		FirstName:     userWithProfileAndRole.UserProfile.FirstName,
-		LastName:      userWithProfileAndRole.UserProfile.LastName,
-		BusinessName:  userWithProfileAndRole.UserProfile.BusinessName,
-		StreetAddress: userWithProfileAndRole.UserProfile.StreetAddress,
-		City:          userWithProfileAndRole.UserProfile.City,
-		State:         userWithProfileAndRole.UserProfile.State,
-		Zip:           userWithProfileAndRole.UserProfile.Zip,
-		CountryCode:   userWithProfileAndRole.UserProfile.CountryCode,
-		RoleID:        userWithProfileAndRole.UserRole.RoleID,
-		CreatedAt:     userWithProfileAndRole.User.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt:     userWithProfileAndRole.User.UpdatedAt.Format("2006-01-02 15:04:05"),
-		VerifiedAt:    userWithProfileAndRole.User.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
-	}
+	userResponse := newUserTXResponse(userWithProfileAndRole)
 
 	ctx.JSON(http.StatusOK, userResponse)
 }
@@ -481,23 +468,7 @@ func (server *Server) DeleteUserTx(ctx *gin.Context) {
 		return
 	}
 
-	userResponse := createUserTxResponse{
-		ID:            userWithProfileAndRole.User.ID,
-		UserName:      userWithProfileAndRole.User.UserName,
-		Email:         userWithProfileAndRole.User.Email,
-		FirstName:     userWithProfileAndRole.UserProfile.FirstName,
-		LastName:      userWithProfileAndRole.UserProfile.LastName,
-		BusinessName:  userWithProfileAndRole.UserProfile.BusinessName,
-		StreetAddress: userWithProfileAndRole.UserProfile.StreetAddress,
-		City:          userWithProfileAndRole.UserProfile.City,
-		State:         userWithProfileAndRole.UserProfile.State,
-		Zip:           userWithProfileAndRole.UserProfile.Zip,
-		CountryCode:   userWithProfileAndRole.UserProfile.CountryCode,
-		RoleID:        userWithProfileAndRole.UserRole.RoleID,
-		CreatedAt:     userWithProfileAndRole.User.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt:     userWithProfileAndRole.User.UpdatedAt.Format("2006-01-02 15:04:05"),
-		VerifiedAt:    userWithProfileAndRole.User.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
-	}
+	userResponse := newUserTXResponse(userWithProfileAndRole)
 
 	ctx.JSON(http.StatusOK, userResponse)
 }
@@ -569,29 +540,13 @@ func (server *Server) UpdateUserTx(ctx *gin.Context) {
 		RoleID: req.RoleID,
 	}
 
-	updatedUserWithProfileAndRole, err := server.store.UpdateUserWithProfileAndRoleTX(ctx, updateUserParams, updateProfileParams, updateRoleParams)
+	userWithProfileAndRole, err := server.store.UpdateUserWithProfileAndRoleTX(ctx, updateUserParams, updateProfileParams, updateRoleParams)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	userResponse := createUserTxResponse{
-		ID:            updatedUserWithProfileAndRole.User.ID,
-		UserName:      updatedUserWithProfileAndRole.User.UserName,
-		Email:         updatedUserWithProfileAndRole.User.Email,
-		FirstName:     updatedUserWithProfileAndRole.UserProfile.FirstName,
-		LastName:      updatedUserWithProfileAndRole.UserProfile.LastName,
-		BusinessName:  updatedUserWithProfileAndRole.UserProfile.BusinessName,
-		StreetAddress: updatedUserWithProfileAndRole.UserProfile.StreetAddress,
-		City:          updatedUserWithProfileAndRole.UserProfile.City,
-		State:         updatedUserWithProfileAndRole.UserProfile.State,
-		Zip:           updatedUserWithProfileAndRole.UserProfile.Zip,
-		CountryCode:   updatedUserWithProfileAndRole.UserProfile.CountryCode,
-		RoleID:        updatedUserWithProfileAndRole.UserRole.RoleID,
-		CreatedAt:     updatedUserWithProfileAndRole.User.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt:     updatedUserWithProfileAndRole.User.UpdatedAt.Format("2006-01-02 15:04:05"),
-		VerifiedAt:    updatedUserWithProfileAndRole.User.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
-	}
+	userResponse := newUserTXResponse(userWithProfileAndRole)
 
 	ctx.JSON(http.StatusOK, userResponse)
 }
