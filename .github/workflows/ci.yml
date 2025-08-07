@@ -37,8 +37,12 @@ jobs:
 
       - name: Create test .env file
         run: |
-          echo "DB_USER=testuser" >> .env
-          echo "DB_PWORD=testpassword" >> .env
+          echo "DB_DRIVER=postgres" >> .env
+          echo "DB_SOURCE=postgresql://testuser:testpassword@localhost:5432/whale_wake_users?sslmode=disable" >> .env
+          echo "SERVER_ADDRESS=0.0.0.0:8080" >> .env
+          echo "TOKEN_SYMMETRIC_KEY=4ce9a925ba6ba4563f18113a455047f22ed914610d242f99439419aaa9d3d069" >> .env
+          echo "ACCESS_TOKEN_DURATION=15m" >> .env
+
 
       - name: Install golang-migrate CLI
         run: |

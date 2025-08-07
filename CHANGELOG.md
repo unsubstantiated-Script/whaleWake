@@ -1,5 +1,10 @@
 Next Release
 -
+v1.6.0
+* PASETO Implementation
+* Authorization
+* Authentication
+* PASETO Tests
 
 v1.5.0
 * BCrypt Passwords and corrected Returns
@@ -16,7 +21,7 @@ v1.4.0
 * Delete User Transaction and Tests
 * Update User Transaction and Tests
 * Setup Create User Transaction Route
-* Setup Get User Transaction Route
+* Setup Get User Transaction Routea
 * Setup Delete User Transaction Route
 * Setup Update User Transaction Route
 
