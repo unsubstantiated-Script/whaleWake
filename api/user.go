@@ -7,6 +7,7 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	db "whaleWake/db/sqlc"
+	"whaleWake/token"
 	"whaleWake/util"
 )
 
@@ -22,11 +23,23 @@ type createUserRequest struct {
 }
 
 type userResponse struct {
-	UserName   string `json:"user_name"`
-	Email      string `json:"email"`
-	CreatedAt  string `json:"created_at"`
-	UpdatedAt  string `json:"updated_at"`
-	VerifiedAt string `json:"verified_at"`
+	ID         uuid.UUID `json:"id"`
+	UserName   string    `json:"user_name"`
+	Email      string    `json:"email"`
+	CreatedAt  string    `json:"created_at"`
+	UpdatedAt  string    `json:"updated_at"`
+	VerifiedAt string    `json:"verified_at"`
+}
+
+func newUserResponse(user db.User) userResponse {
+	return userResponse{
+		ID:         user.ID,
+		UserName:   user.UserName,
+		Email:      user.Email,
+		CreatedAt:  user.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:  user.UpdatedAt.Format("2006-01-02 15:04:05"),
+		VerifiedAt: user.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
+	}
 }
 
 // CreateUser handles POST /users to create a new user.
@@ -44,7 +57,7 @@ func (server *Server) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	passHashed, err := util.HashPassword(req.Password)
+	hashedPassword, err := util.HashPassword(req.Password)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -54,7 +67,7 @@ func (server *Server) CreateUser(ctx *gin.Context) {
 	arg := db.CreateUserParams{
 		UserName: req.UserName,
 		Email:    req.Email,
-		Password: passHashed,
+		Password: hashedPassword,
 	}
 
 	_, err = server.store.GetUserByEmail(ctx, arg.Email)
@@ -69,12 +82,15 @@ func (server *Server) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	userResponse := userResponse{
-		UserName:  user.UserName,
-		Email:     user.Email,
-		CreatedAt: user.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt: user.UpdatedAt.Format("2006-01-02 15:04:05"),
+	//We're going to give the user a Role off the rip that way we can Auth roles later.
+	userRoleParams := db.CreateUserRoleParams{
+		UserID: user.ID,
+		RoleID: 1,
 	}
+
+	_, err = server.store.CreateUserRole(ctx, userRoleParams)
+
+	userResponse := newUserResponse(user)
 
 	ctx.JSON(http.StatusOK, userResponse)
 }
@@ -105,13 +121,14 @@ func (server *Server) GetUser(ctx *gin.Context) {
 		return
 	}
 
-	userResponse := userResponse{
-		UserName:   user.UserName,
-		Email:      user.Email,
-		CreatedAt:  user.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt:  user.UpdatedAt.Format("2006-01-02 15:04:05"),
-		VerifiedAt: user.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	if user.ID != authPayload.UserID && authPayload.RoleID != 3 {
+		ctx.JSON(http.StatusForbidden, errorResponse(errors.New("You are not authorized to view this user")))
+		return
 	}
+
+	userResponse := newUserResponse(user)
 
 	ctx.JSON(http.StatusOK, userResponse)
 }
@@ -141,6 +158,13 @@ func (server *Server) ListUser(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	if authPayload.RoleID != 3 {
+		ctx.JSON(http.StatusForbidden, errorResponse(errors.New("You are not authorized to view these users")))
+		return
+	}
+
 	arg := db.ListUsersParams{
 		Limit:  req.PageSize,
 		Offset: (req.PageID - 1) * req.PageSize,
@@ -151,6 +175,7 @@ func (server *Server) ListUser(ctx *gin.Context) {
 	var usersResponse []userResponse
 	for _, user := range users {
 		usersResponse = append(usersResponse, userResponse{
+			ID:         user.ID,
 			UserName:   user.UserName,
 			Email:      user.Email,
 			CreatedAt:  user.CreatedAt.Format("2006-01-02 15:04:05"),
@@ -183,18 +208,19 @@ func (server *Server) DeleteUser(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	if authPayload.RoleID != 3 {
+		ctx.JSON(http.StatusForbidden, errorResponse(errors.New("You are not authorized to delete this user")))
+		return
+	}
+
 	user, err := server.store.DeleteUser(ctx, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 	}
 
-	userResponse := userResponse{
-		UserName:   user.UserName,
-		Email:      user.Email,
-		CreatedAt:  user.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt:  user.UpdatedAt.Format("2006-01-02 15:04:05"),
-		VerifiedAt: user.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
-	}
+	userResponse := newUserResponse(user)
 
 	ctx.JSON(http.StatusOK, userResponse)
 }
@@ -225,7 +251,14 @@ func (server *Server) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	passHashed, err := util.HashPassword(req.Password)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	if req.ID != authPayload.UserID && authPayload.RoleID != 3 {
+		ctx.JSON(http.StatusForbidden, errorResponse(errors.New("You are not authorized to view this user")))
+		return
+	}
+
+	hashedPassword, err := util.HashPassword(req.Password)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -236,7 +269,7 @@ func (server *Server) UpdateUser(ctx *gin.Context) {
 		ID:       req.ID,
 		UserName: req.UserName,
 		Email:    req.Email,
-		Password: passHashed,
+		Password: hashedPassword,
 	}
 
 	user, err := server.store.UpdateUser(ctx, arg)
@@ -245,13 +278,7 @@ func (server *Server) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	userResponse := userResponse{
-		UserName:   user.UserName,
-		Email:      user.Email,
-		CreatedAt:  user.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt:  user.UpdatedAt.Format("2006-01-02 15:04:05"),
-		VerifiedAt: user.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
-	}
+	userResponse := newUserResponse(user)
 
 	ctx.JSON(http.StatusOK, userResponse)
 }
@@ -274,20 +301,41 @@ type createUserTxRequest struct {
 }
 
 type createUserTxResponse struct {
-	UserName      string `json:"user_name"`
-	Email         string `json:"email"`
-	FirstName     string `json:"first_name"`
-	LastName      string `json:"last_name"`
-	BusinessName  string `json:"business_name"`
-	StreetAddress string `json:"street_address"`
-	City          string `json:"city"`
-	State         string `json:"state"`
-	Zip           string `json:"zip"`
-	CountryCode   string `json:"country_code"`
-	RoleID        int32  `json:"role_id"`
-	CreatedAt     string `json:"created_at"`
-	UpdatedAt     string `json:"updated_at"`
-	VerifiedAt    string `json:"verified_at"`
+	ID            uuid.UUID `json:"id"`
+	UserName      string    `json:"user_name"`
+	Email         string    `json:"email"`
+	FirstName     string    `json:"first_name"`
+	LastName      string    `json:"last_name"`
+	BusinessName  string    `json:"business_name"`
+	StreetAddress string    `json:"street_address"`
+	City          string    `json:"city"`
+	State         string    `json:"state"`
+	Zip           string    `json:"zip"`
+	CountryCode   string    `json:"country_code"`
+	RoleID        int32     `json:"role_id"`
+	CreatedAt     string    `json:"created_at"`
+	UpdatedAt     string    `json:"updated_at"`
+	VerifiedAt    string    `json:"verified_at"`
+}
+
+func newUserTXResponse(userWithProfileAndRole db.UserTxResult) createUserTxResponse {
+	return createUserTxResponse{
+		ID:            userWithProfileAndRole.User.ID,
+		UserName:      userWithProfileAndRole.User.UserName,
+		Email:         userWithProfileAndRole.User.Email,
+		FirstName:     userWithProfileAndRole.UserProfile.FirstName,
+		LastName:      userWithProfileAndRole.UserProfile.LastName,
+		BusinessName:  userWithProfileAndRole.UserProfile.BusinessName,
+		StreetAddress: userWithProfileAndRole.UserProfile.StreetAddress,
+		City:          userWithProfileAndRole.UserProfile.City,
+		State:         userWithProfileAndRole.UserProfile.State,
+		Zip:           userWithProfileAndRole.UserProfile.Zip,
+		CountryCode:   userWithProfileAndRole.UserProfile.CountryCode,
+		RoleID:        userWithProfileAndRole.UserRole.RoleID,
+		CreatedAt:     userWithProfileAndRole.User.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt:     userWithProfileAndRole.User.UpdatedAt.Format("2006-01-02 15:04:05"),
+		VerifiedAt:    userWithProfileAndRole.User.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
+	}
 }
 
 // CreateUserTx handles POST /users/tx for transactional user creation.
@@ -305,7 +353,7 @@ func (server *Server) CreateUserTx(ctx *gin.Context) {
 		return
 	}
 
-	passHashed, err := util.HashPassword(req.Password)
+	hashedPassword, err := util.HashPassword(req.Password)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -315,7 +363,7 @@ func (server *Server) CreateUserTx(ctx *gin.Context) {
 	userParams := db.CreateUserParams{
 		UserName: req.UserName,
 		Email:    req.Email,
-		Password: passHashed,
+		Password: hashedPassword,
 	}
 
 	profileParams := db.CreateUserProfileParams{
@@ -345,22 +393,7 @@ func (server *Server) CreateUserTx(ctx *gin.Context) {
 		return
 	}
 
-	userResponse := createUserTxResponse{
-		UserName:      userWithProfileAndRole.User.UserName,
-		Email:         userWithProfileAndRole.User.Email,
-		FirstName:     userWithProfileAndRole.UserProfile.FirstName,
-		LastName:      userWithProfileAndRole.UserProfile.LastName,
-		BusinessName:  userWithProfileAndRole.UserProfile.BusinessName,
-		StreetAddress: userWithProfileAndRole.UserProfile.StreetAddress,
-		City:          userWithProfileAndRole.UserProfile.City,
-		State:         userWithProfileAndRole.UserProfile.State,
-		Zip:           userWithProfileAndRole.UserProfile.Zip,
-		CountryCode:   userWithProfileAndRole.UserProfile.CountryCode,
-		RoleID:        userWithProfileAndRole.UserRole.RoleID,
-		CreatedAt:     userWithProfileAndRole.User.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt:     userWithProfileAndRole.User.UpdatedAt.Format("2006-01-02 15:04:05"),
-		VerifiedAt:    userWithProfileAndRole.User.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
-	}
+	userResponse := newUserTXResponse(userWithProfileAndRole)
 
 	ctx.JSON(http.StatusOK, userResponse)
 }
@@ -394,22 +427,14 @@ func (server *Server) GetUserTx(ctx *gin.Context) {
 		return
 	}
 
-	userResponse := createUserTxResponse{
-		UserName:      userWithProfileAndRole.User.UserName,
-		Email:         userWithProfileAndRole.User.Email,
-		FirstName:     userWithProfileAndRole.UserProfile.FirstName,
-		LastName:      userWithProfileAndRole.UserProfile.LastName,
-		BusinessName:  userWithProfileAndRole.UserProfile.BusinessName,
-		StreetAddress: userWithProfileAndRole.UserProfile.StreetAddress,
-		City:          userWithProfileAndRole.UserProfile.City,
-		State:         userWithProfileAndRole.UserProfile.State,
-		Zip:           userWithProfileAndRole.UserProfile.Zip,
-		CountryCode:   userWithProfileAndRole.UserProfile.CountryCode,
-		RoleID:        userWithProfileAndRole.UserRole.RoleID,
-		CreatedAt:     userWithProfileAndRole.User.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt:     userWithProfileAndRole.User.UpdatedAt.Format("2006-01-02 15:04:05"),
-		VerifiedAt:    userWithProfileAndRole.User.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	if userWithProfileAndRole.User.ID != authPayload.UserID && authPayload.RoleID != 3 {
+		ctx.JSON(http.StatusForbidden, errorResponse(errors.New("You are not authorized to view this user")))
+		return
 	}
+
+	userResponse := newUserTXResponse(userWithProfileAndRole)
 
 	ctx.JSON(http.StatusOK, userResponse)
 }
@@ -430,28 +455,20 @@ func (server *Server) DeleteUserTx(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	if authPayload.RoleID != 3 {
+		ctx.JSON(http.StatusForbidden, errorResponse(errors.New("You are not authorized to delete users")))
+		return
+	}
+
 	userWithProfileAndRole, err := server.store.DeleteUserWithProfileAndRoleTX(ctx, id)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	userResponse := createUserTxResponse{
-		UserName:      userWithProfileAndRole.User.UserName,
-		Email:         userWithProfileAndRole.User.Email,
-		FirstName:     userWithProfileAndRole.UserProfile.FirstName,
-		LastName:      userWithProfileAndRole.UserProfile.LastName,
-		BusinessName:  userWithProfileAndRole.UserProfile.BusinessName,
-		StreetAddress: userWithProfileAndRole.UserProfile.StreetAddress,
-		City:          userWithProfileAndRole.UserProfile.City,
-		State:         userWithProfileAndRole.UserProfile.State,
-		Zip:           userWithProfileAndRole.UserProfile.Zip,
-		CountryCode:   userWithProfileAndRole.UserProfile.CountryCode,
-		RoleID:        userWithProfileAndRole.UserRole.RoleID,
-		CreatedAt:     userWithProfileAndRole.User.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt:     userWithProfileAndRole.User.UpdatedAt.Format("2006-01-02 15:04:05"),
-		VerifiedAt:    userWithProfileAndRole.User.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
-	}
+	userResponse := newUserTXResponse(userWithProfileAndRole)
 
 	ctx.JSON(http.StatusOK, userResponse)
 }
@@ -487,7 +504,14 @@ func (server *Server) UpdateUserTx(ctx *gin.Context) {
 		return
 	}
 
-	passHashed, err := util.HashPassword(req.Password)
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*token.Payload)
+
+	if req.ID != authPayload.UserID && authPayload.RoleID != 3 {
+		ctx.JSON(http.StatusForbidden, errorResponse(errors.New("You are not authorized to update this user")))
+		return
+	}
+
+	hashedPassword, err := util.HashPassword(req.Password)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -498,7 +522,7 @@ func (server *Server) UpdateUserTx(ctx *gin.Context) {
 		ID:       req.ID,
 		UserName: req.UserName,
 		Email:    req.Email,
-		Password: passHashed,
+		Password: hashedPassword,
 	}
 
 	updateProfileParams := db.UpdateUserProfileParams{
@@ -516,28 +540,76 @@ func (server *Server) UpdateUserTx(ctx *gin.Context) {
 		RoleID: req.RoleID,
 	}
 
-	updatedUserWithProfileAndRole, err := server.store.UpdateUserWithProfileAndRoleTX(ctx, updateUserParams, updateProfileParams, updateRoleParams)
+	userWithProfileAndRole, err := server.store.UpdateUserWithProfileAndRoleTX(ctx, updateUserParams, updateProfileParams, updateRoleParams)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	userResponse := createUserTxResponse{
-		UserName:      updatedUserWithProfileAndRole.User.UserName,
-		Email:         updatedUserWithProfileAndRole.User.Email,
-		FirstName:     updatedUserWithProfileAndRole.UserProfile.FirstName,
-		LastName:      updatedUserWithProfileAndRole.UserProfile.LastName,
-		BusinessName:  updatedUserWithProfileAndRole.UserProfile.BusinessName,
-		StreetAddress: updatedUserWithProfileAndRole.UserProfile.StreetAddress,
-		City:          updatedUserWithProfileAndRole.UserProfile.City,
-		State:         updatedUserWithProfileAndRole.UserProfile.State,
-		Zip:           updatedUserWithProfileAndRole.UserProfile.Zip,
-		CountryCode:   updatedUserWithProfileAndRole.UserProfile.CountryCode,
-		RoleID:        updatedUserWithProfileAndRole.UserRole.RoleID,
-		CreatedAt:     updatedUserWithProfileAndRole.User.CreatedAt.Format("2006-01-02 15:04:05"),
-		UpdatedAt:     updatedUserWithProfileAndRole.User.UpdatedAt.Format("2006-01-02 15:04:05"),
-		VerifiedAt:    updatedUserWithProfileAndRole.User.VerifiedAt.Time.Format("2006-01-02 15:04:05"),
-	}
+	userResponse := newUserTXResponse(userWithProfileAndRole)
 
 	ctx.JSON(http.StatusOK, userResponse)
+}
+
+// loginUserRequest defines the payload for logging in a user.
+// Fields:
+// - Email: required, must be a valid email.
+// - Password: required, 8-32 characters.
+type loginUserRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=8,max=32"`
+}
+
+type loginUserResponse struct {
+	AccessToken string       `json:"access_token"`
+	User        userResponse `json:"user"`
+}
+
+func (server *Server) LoginUser(ctx *gin.Context) {
+	var req loginUserRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	user, err := server.store.GetUserByEmail(ctx, req.Email)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("invalid email or password")))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	err = util.CheckPasswordHash(req.Password, user.Password)
+	if err != nil {
+		ctx.JSON(http.StatusUnauthorized, errorResponse(errors.New("invalid email or password")))
+		return
+	}
+
+	userRole, err := server.store.GetUserRole(ctx, user.ID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	accessToken, err := server.tokenMaker.CreateToken(
+		user.ID,
+		int(userRole.RoleID),
+		server.config.AccessTokenDuration,
+	)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	rsp := loginUserResponse{
+		AccessToken: accessToken,
+		User:        newUserResponse(user),
+	}
+
+	ctx.JSON(http.StatusOK, rsp)
 }
