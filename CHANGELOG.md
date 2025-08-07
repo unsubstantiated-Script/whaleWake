@@ -1,5 +1,10 @@
 Next Release
 -
+v1.6.0
+* PASETO Implementation
+* Authorization
+* Authentication
+* PASETO Tests
 
 v1.5.0
 * BCrypt Passwords and corrected Returns
