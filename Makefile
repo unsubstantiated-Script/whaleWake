@@ -11,13 +11,13 @@ dropdb:
 	docker exec -it whale-users-postgres dropdb -U $(DB_USER) whale_wake_users
 
 migrateup:
-	migrate -path db/migration -database "postgresql://$(DB_USER):$(DB_PWORD)@localhost:5432/whale_wake_users?sslmode=disable" -verbose up
+	migrate -path db/migration -database "$(DB_SOURCE)" -verbose up
 
 testmigrateup:
 	migrate -path db/migration -database "postgresql://testuser:testpassword@localhost:5432/whale_wake_users?sslmode=disable" -verbose up
 
 migratedown:
-	migrate -path db/migration -database "postgresql://$(DB_USER):$(DB_PWORD)@localhost:5432/whale_wake_users?sslmode=disable" -verbose down
+	migrate -path db/migration -database "$(DB_SOURCE)" -verbose down
 
 sqlc:
 	sqlc generate
