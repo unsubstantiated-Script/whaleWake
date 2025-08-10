@@ -14,6 +14,9 @@ type Config struct {
 }
 
 func LoadConfig(path string) (config Config, err error) {
+	// Enable automatic environment variable reading
+	viper.AutomaticEnv()
+
 	// Load environment variables from the specified path
 	viper.AddConfigPath(path)
 	viper.SetConfigName(".env")
