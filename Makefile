@@ -2,7 +2,7 @@ include .env
 export
 
 postgres:
-	docker run --name whale-users-postgres --network whale-wake-network -p 5432:5432 -e POSTGRES_USER=$(DB_USER) -e POSTGRES_PASSWORD=$(DB_PWORD) -d postgres:12-alpine
+	docker run --name whale-users-postgres --network whale-wake-network -p 5432:5432 -e POSTGRES_USER=$(DB_USER) -e POSTGRES_PASSWORD=$(DB_PASSWORD) -d postgres:12-alpine
 
 createdb:
 	docker exec -it whale-users-postgres createdb --username=$(DB_USER) --owner=admin whale_wake_users
