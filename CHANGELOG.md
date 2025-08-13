@@ -1,5 +1,11 @@
 Next Release
 -
+
+* Docker Config
+* Some bash runs
+* Docker Compose
+* Ready to deploy mah cluster!
+
 v1.6.0
 * PASETO Implementation
 * Authorization
