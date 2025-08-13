@@ -1,6 +1,7 @@
 Next Release
 -
 
+v1.7.0
 * Docker Config
 * Some bash runs
 * Docker Compose
