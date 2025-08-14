@@ -5,7 +5,7 @@ v1.7.0
 * Docker Config
 * Some bash runs
 * Docker Compose
-* Ready to deploy mah cluster!
+* AWS ECR Ready
 
 v1.6.0
 * PASETO Implementation
